@@ -224,22 +224,18 @@
       <div class="flex items-center gap-1.5 sm:gap-2 order-2 sm:order-3">
         <button onclick="openSearchModal()" class="bg-lb-green hover:bg-[#00c84b] text-black font-bold text-xs px-3 py-2 rounded-xl shadow-lg shadow-lb-green/10 flex items-center gap-1.5 transition-transform active:scale-95">
           <i class="fa-solid fa-plus"></i>
-          <span>Agregar</span>
+          <span>Agregar Obra</span>
         </button>
-        <button onclick="openApiKeysModal()" title="Configurar Claves API Gratuitas (SteamGridDB, TMDB, RAWG, ComicVine)" class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border text-xs transition-colors flex items-center gap-1.5">
-          <i class="fa-solid fa-gear text-lb-orange"></i>
-          <span class="hidden md:inline">Claves API</span>
-        </button>
-        <button onclick="openBackupModal()" title="Respaldo y Almacenamiento Offline" class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border text-xs transition-colors flex items-center gap-1.5">
+        <button onclick="openBackupModal()" title="Respaldo y Almacenamiento Offline" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border text-xs transition-colors flex items-center gap-1.5">
           <i class="fa-solid fa-database text-lb-blue"></i>
-          <span class="hidden md:inline">Datos</span>
+          <span class="hidden sm:inline">Respaldo Offline</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- CONTENEDOR PRINCIPAL PERFECTAMENTE CENTRADO (max-w-5xl) -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-5 overflow-x-hidden">
+  <!-- CONTENEDOR PRINCIPAL PERFECTAMENTE CENTRADO (max-w-[1120px]) -->
+  <main class="flex-1 max-w-[1120px] w-full mx-auto px-4 py-5 overflow-x-hidden">
 
     <!-- ========================================== -->
     <!-- VISTA 1: ESTANTERÍA DE FORMATOS (INICIO)   -->
@@ -521,15 +517,16 @@
         <div class="flex items-center gap-2 min-w-0">
           <i class="fa-solid fa-wand-magic-sparkles text-lb-green text-base"></i>
           <div class="min-w-0">
-            <h2 id="search-modal-title" class="text-sm sm:text-base font-extrabold text-white truncate">Buscador Multi-Portada (Estilo Steam ROM Manager)</h2>
-            <p class="text-[11px] text-lb-text truncate">Extrae decenas de carátulas oficiales, ediciones históricas y pósters alternativos.</p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 id="search-modal-title" class="text-sm sm:text-base font-extrabold text-white truncate">Buscador Multi-Portada (Estilo Steam ROM Manager)</h2>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-lb-green/15 text-lb-green border border-lb-green/30">
+                100% Sin Claves · Bases Abiertas
+              </span>
+            </div>
+            <p class="text-[11px] text-lb-text truncate">Conectado a Steam CDN, VNDB, IMDb, TVMaze, AniList, MAL, Kitsu, OpenLibrary, Google Books e iTunes HD.</p>
           </div>
         </div>
         <div class="flex items-center gap-1.5 flex-shrink-0">
-          <button onclick="openApiKeysModal()" class="px-2.5 py-1.5 rounded-lg bg-lb-elevated hover:bg-lb-border text-lb-orange text-[11px] font-bold flex items-center gap-1">
-            <i class="fa-solid fa-key"></i>
-            <span class="hidden sm:inline">Claves API</span>
-          </button>
           <button onclick="closeSearchModal()" class="w-8 h-8 rounded-lg bg-lb-elevated hover:bg-lb-border text-lb-text hover:text-white flex items-center justify-center">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -619,71 +616,6 @@
   </div>
 
   <!-- ========================================================= -->
-  <!-- MODAL 2: PANEL DE CLAVES API GRATUITAS (⚙️)               -->
-  <!-- ========================================================= -->
-  <div id="modal-apikeys" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-lb-surface border border-lb-border rounded-2xl max-w-xl w-full p-4 sm:p-6 space-y-4 shadow-2xl my-auto">
-      <div class="flex items-center justify-between border-b border-lb-border pb-3">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-key text-lb-orange text-lg"></i>
-          <div>
-            <h3 class="text-sm sm:text-base font-extrabold text-white">Claves API Gratuitas (Opcional)</h3>
-            <p class="text-[11px] text-lb-text">El buscador ya incluye 6 motores públicos sin clave. Añade estas si quieres aún más portadas.</p>
-          </div>
-        </div>
-        <button onclick="closeApiKeysModal()" class="text-lb-text hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="space-y-3 text-xs max-h-[65vh] overflow-y-auto pr-1">
-        <!-- 1. SteamGridDB -->
-        <div class="bg-[#14181c] p-3 rounded-xl border border-lb-border space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-white">1. SteamGridDB API Key (Videojuegos)</span>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-lb-blue/15 text-lb-blue">Motor de Steam ROM Manager</span>
-          </div>
-          <p class="text-[11px] text-lb-text">Consíguela gratis en <code>steamgriddb.com/profile/preferences/api</code>. Desbloquea miles de carátulas fan-made y oficiales.</p>
-          <input id="apikey-sgdb" type="password" placeholder="Pega tu clave de SteamGridDB..." class="w-full px-3 py-2 rounded-lg bg-lb-surface border border-lb-border text-white text-xs focus:outline-none focus:border-lb-green" />
-        </div>
-
-        <!-- 2. TMDB -->
-        <div class="bg-[#14181c] p-3 rounded-xl border border-lb-border space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-white">2. TMDB API Key v3 (Películas, Series y Anime)</span>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-lb-green/15 text-lb-green">Motor de Letterboxd</span>
-          </div>
-          <p class="text-[11px] text-lb-text">Consíguela gratis en <code>themoviedb.org/settings/api</code>. Extrae decenas de pósters alternativos y sin texto por película.</p>
-          <input id="apikey-tmdb" type="password" placeholder="Pega tu API Key (v3 auth) de TMDB..." class="w-full px-3 py-2 rounded-lg bg-lb-surface border border-lb-border text-white text-xs focus:outline-none focus:border-lb-green" />
-        </div>
-
-        <!-- 3. RAWG -->
-        <div class="bg-[#14181c] p-3 rounded-xl border border-lb-border space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-white">3. RAWG API Key (Videojuegos de Consola y Retro)</span>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/15 text-purple-300">+500,000 Juegos</span>
-          </div>
-          <p class="text-[11px] text-lb-text">Consíguela gratis en <code>rawg.io/apidocs</code>. Ideal para juegos de Nintendo, PlayStation y consolas clásicas.</p>
-          <input id="apikey-rawg" type="password" placeholder="Pega tu API Key de RAWG..." class="w-full px-3 py-2 rounded-lg bg-lb-surface border border-lb-border text-white text-xs focus:outline-none focus:border-lb-green" />
-        </div>
-
-        <!-- 4. ComicVine -->
-        <div class="bg-[#14181c] p-3 rounded-xl border border-lb-border space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-white">4. ComicVine API Key (Cómics Marvel, DC, Indie)</span>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300">Enciclopedia de Cómics</span>
-          </div>
-          <p class="text-[11px] text-lb-text">Consíguela gratis en <code>comicvine.gamespot.com/api/</code>. Nota: Libros y Manga ya traen todo gratis sin clave con OpenLibrary, Google Books y AniList.</p>
-          <input id="apikey-comicvine" type="password" placeholder="Pega tu API Key de ComicVine..." class="w-full px-3 py-2 rounded-lg bg-lb-surface border border-lb-border text-white text-xs focus:outline-none focus:border-lb-green" />
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-2 border-t border-lb-border">
-        <button onclick="closeApiKeysModal()" class="px-4 py-2 rounded-xl bg-lb-elevated text-white text-xs font-semibold">Cancelar</button>
-        <button onclick="saveApiKeysFromModal()" class="px-5 py-2 rounded-xl bg-lb-green text-black font-bold text-xs">Guardar Claves</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
   <!-- MODAL 3: FICHA DE DETALLES DE LA OBRA (4 CAMPOS + GESTIÓN)-->
   <!-- ========================================================= -->
   <div id="modal-details" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto overflow-x-hidden">
@@ -708,6 +640,10 @@
           <button onclick="changeCoverForCurrentItem()" class="w-36 sm:w-full py-2 px-3 rounded-xl bg-lb-elevated hover:bg-lb-border text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors">
             <i class="fa-solid fa-images text-lb-orange"></i>
             <span>Cambiar Portada</span>
+          </button>
+          <button onclick="downloadCurrentItemCover()" class="w-36 sm:w-full py-1.5 px-3 rounded-xl bg-[#14181c] hover:bg-lb-elevated border border-lb-border text-[11px] font-semibold text-lb-text hover:text-white flex items-center justify-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-download text-lb-blue"></i>
+            <span>Descargar Carátula</span>
           </button>
         </div>
 
@@ -1048,6 +984,7 @@
       if (rawUrl.startsWith('data:image/')) return rawUrl;
 
       const proxyCandidates = [
+        `https://images.weserv.nl/?url=${encodeURIComponent(rawUrl)}&w=420&h=630&fit=cover&output=webp`,
         `https://wsrv.nl/?url=${encodeURIComponent(rawUrl)}&w=420&h=630&fit=cover&output=webp`,
         rawUrl
       ];
@@ -1559,6 +1496,31 @@
       }
     }
 
+    // Consulta auxiliar al índice público de sugerencias de IMDb (Sin clave)
+    async function fetchImdbPublicSuggestions(query) {
+      const cleanQ = query.trim().toLowerCase();
+      if (!cleanQ) return [];
+      const firstChar = cleanQ[0].replace(/[^a-z0-9]/g, 'x') || 'x';
+      const targetUrl = `https://v3.sg.media-imdb.com/suggestion/${firstChar}/${encodeURIComponent(cleanQ)}.json`;
+      const endpoints = [
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && Array.isArray(data.d)) {
+              return data.d;
+            }
+          }
+        } catch (e) {}
+      }
+      return [];
+    }
+
     async function executeMediaSearch() {
       const format = document.getElementById('search-format-select').value;
       const query = document.getElementById('search-query-input').value.trim();
@@ -1573,20 +1535,19 @@
       resultsArea.innerHTML = '';
       currentCoverSourceFilter = 'ALL';
       loadingEl.classList.remove('hidden');
-      document.getElementById('search-loading-text').textContent = `Consultando múltiples bases de datos para "${query}"...`;
+      document.getElementById('search-loading-text').textContent = `Extrayendo portadas de bases abiertas para "${query}"...`;
 
       let allCovers = [];
-      const keys = appState.apiKeys || {};
 
       try {
         // ===============================================================
-        // A. LIBROS (Open Library Multi-Edition + Google Books + Apple Books)
+        // A. LIBROS (OpenLibrary 25 Ediciones + Google Books 25 + Apple Books HD)
         // ===============================================================
         if (format === 'libros') {
           const [olRes, gbRes, appleBooksRes] = await Promise.allSettled([
-            fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=14`).then(r => r.json()),
-            fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=24`).then(r => r.json()),
-            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=ebook&limit=12`).then(r => r.json())
+            fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=25`).then(r => r.json()),
+            fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=25`).then(r => r.json()),
+            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=ebook&limit=15`).then(r => r.json())
           ]);
 
           let workKeysToExpand = [];
@@ -1601,7 +1562,14 @@
                   label: `Edición (${doc.first_publish_year || 'Clásica'})`
                 });
               }
-              // Extraer múltiples ediciones directamente del array edition_key
+              if (doc.cover_edition_key) {
+                pushUniqueCover(allCovers, {
+                  title,
+                  url: `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-L.jpg?default=false`,
+                  source: 'OpenLibrary',
+                  label: `Edición Principal (${doc.cover_edition_key})`
+                });
+              }
               if (Array.isArray(doc.edition_key)) {
                 doc.edition_key.slice(0, 8).forEach((olid, idx) => {
                   pushUniqueCover(allCovers, {
@@ -1618,7 +1586,6 @@
             });
           }
 
-          // Expandir galerías de ediciones de OpenLibrary
           if (workKeysToExpand.length > 0) {
             const edPromises = workKeysToExpand.map(w =>
               fetch(`https://openlibrary.org${w.key}/editions.json?limit=25`).then(r => r.json()).then(data => ({ data, title: w.title }))
@@ -1640,7 +1607,6 @@
             });
           }
 
-          // Google Books (24 resultados)
           if (gbRes.status === 'fulfilled' && Array.isArray(gbRes.value.items)) {
             gbRes.value.items.forEach(item => {
               const info = item.volumeInfo || {};
@@ -1659,15 +1625,14 @@
             });
           }
 
-          // Apple Books HD
           if (appleBooksRes.status === 'fulfilled' && Array.isArray(appleBooksRes.value.results)) {
             appleBooksRes.value.results.forEach(b => {
               if (b.artworkUrl100) {
                 pushUniqueCover(allCovers, {
                   title: `${b.trackName || query}${b.artistName ? ' — ' + b.artistName : ''}`,
                   url: b.artworkUrl100.replace('100x100bb', '1000x1000bb'),
-                  source: 'Apple Books HD',
-                  label: 'Portada Digital HD'
+                  source: 'iTunes HD',
+                  label: 'Apple Books HD'
                 });
               }
             });
@@ -1675,39 +1640,26 @@
         }
 
         // ===============================================================
-        // B. VIDEOJUEGOS (Steam Vertical Boxart + Header + Capsule + iTunes + SteamGridDB / RAWG)
+        // B. VIDEOJUEGOS (Steam 600x900 CDN + VNDB Kana API + Internet Archive + iTunes HD)
         // ===============================================================
         else if (format === 'videojuegos') {
-          const tasks = [
-            fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(query)}&limit=20`).then(r => r.json()),
-            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=software&limit=10`).then(r => r.json())
-          ];
+          const [csRes, vndbRes, archiveRes, itunesRes] = await Promise.allSettled([
+            fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(query)}&limit=25`).then(r => r.json()),
+            fetch('https://api.vndb.org/kana/vn', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                filters: ['search', '=', query],
+                fields: 'title,image.url,released',
+                results: 16
+              })
+            }).then(r => r.json()),
+            fetch(`https://archive.org/advancedsearch.php?q=title:(${encodeURIComponent(query)})+AND+mediatype:(software)&fl[]=identifier,title,year&rows=12&output=json`).then(r => r.json()),
+            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=software&limit=14`).then(r => r.json())
+          ]);
 
-          // Si el usuario configuró RAWG API Key
-          if (keys.rawg) {
-            tasks.push(
-              fetch(`https://api.rawg.io/api/games?key=${encodeURIComponent(keys.rawg)}&search=${encodeURIComponent(query)}&page_size=14`).then(r => r.json())
-            );
-          }
-
-          // Si el usuario configuró SteamGridDB API Key (vía proxy CORS)
-          if (keys.sgdb) {
-            const sgdbSearchUrl = `https://www.steamgriddb.com/api/v2/search/autocomplete/${encodeURIComponent(query)}`;
-            tasks.push(
-              fetch(`https://corsproxy.io/?${encodeURIComponent(sgdbSearchUrl)}`, {
-                headers: { 'Authorization': `Bearer ${keys.sgdb}` }
-              }).then(r => r.json())
-            );
-          }
-
-          const results = await Promise.allSettled(tasks);
-          const csRes = results[0];
-          const itunesRes = results[1];
-          const rawgRes = keys.rawg ? results[2] : null;
-          const sgdbSearchRes = keys.sgdb ? results[keys.rawg ? 3 : 2] : null;
-
-          // 1. CheapShark -> Múltiples formatos de Steam por cada juego encontrado (como Steam ROM Manager)
-          if (csRes?.status === 'fulfilled' && Array.isArray(csRes.value)) {
+          // 1. CheapShark -> Carátulas verticales oficiales de Steam 600x900 (igual que Steam ROM Manager)
+          if (csRes.status === 'fulfilled' && Array.isArray(csRes.value)) {
             csRes.value.forEach(g => {
               const title = g.external || query;
               if (g.steamAppID) {
@@ -1715,26 +1667,20 @@
                 pushUniqueCover(allCovers, {
                   title,
                   url: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/library_600x900_2x.jpg`,
-                  source: 'Steam Vertical',
-                  label: `${title} (Boxart 2x)`
+                  source: 'Steam 600x900',
+                  label: `${title} (Boxart HD 2x)`
                 });
                 pushUniqueCover(allCovers, {
                   title,
                   url: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`,
-                  source: 'Steam Vertical',
-                  label: `${title} (Grid)`
-                });
-                pushUniqueCover(allCovers, {
-                  title,
-                  url: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/capsule_616x353.jpg`,
-                  source: 'Steam Capsule',
-                  label: `${title} (Cápsula)`
+                  source: 'Steam 600x900',
+                  label: `${title} (Grid Vertical)`
                 });
                 pushUniqueCover(allCovers, {
                   title,
                   url: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
                   source: 'Steam Header',
-                  label: `${title} (Banner)`
+                  label: `${title} (Header Oficial)`
                 });
               }
               if (g.thumb) {
@@ -1748,44 +1694,36 @@
             });
           }
 
-          // 2. RAWG (si tiene clave)
-          if (rawgRes?.status === 'fulfilled' && Array.isArray(rawgRes.value?.results)) {
-            rawgRes.value.results.forEach(game => {
-              if (game.background_image) {
+          // 2. VNDB Kana API (Novelas visuales, JRPGs y lanzamientos japoneses sin clave)
+          if (vndbRes.status === 'fulfilled' && Array.isArray(vndbRes.value?.results)) {
+            vndbRes.value.results.forEach(vn => {
+              if (vn.image?.url) {
                 pushUniqueCover(allCovers, {
-                  title: game.name,
-                  url: game.background_image,
-                  source: 'RAWG',
-                  label: `${game.name} (${(game.released || '').slice(0, 4)})`
+                  title: vn.title || query,
+                  url: vn.image.url,
+                  source: 'VNDB',
+                  label: `${vn.title} ${vn.released ? '(' + vn.released.slice(0, 4) + ')' : ''}`
                 });
               }
             });
           }
 
-          // 3. SteamGridDB (si tiene clave)
-          if (sgdbSearchRes?.status === 'fulfilled' && sgdbSearchRes.value?.success && Array.isArray(sgdbSearchRes.value.data) && sgdbSearchRes.value.data.length > 0) {
-            const topGameId = sgdbSearchRes.value.data[0].id;
-            const topGameName = sgdbSearchRes.value.data[0].name;
-            try {
-              const gridsUrl = `https://www.steamgriddb.com/api/v2/grids/game/${topGameId}?dimensions=600x900`;
-              const gridsRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(gridsUrl)}`, {
-                headers: { 'Authorization': `Bearer ${keys.sgdb}` }
-              }).then(r => r.json());
-              if (gridsRes?.success && Array.isArray(gridsRes.data)) {
-                gridsRes.data.slice(0, 20).forEach((grid, idx) => {
-                  pushUniqueCover(allCovers, {
-                    title: topGameName,
-                    url: grid.url,
-                    source: 'SteamGridDB',
-                    label: `Grid #${idx + 1} (${grid.style || 'Custom'})`
-                  });
+          // 3. Internet Archive Software & Console Covers
+          if (archiveRes.status === 'fulfilled' && Array.isArray(archiveRes.value?.response?.docs)) {
+            archiveRes.value.response.docs.forEach(doc => {
+              if (doc.identifier) {
+                pushUniqueCover(allCovers, {
+                  title: doc.title || query,
+                  url: `https://archive.org/services/img/${doc.identifier}`,
+                  source: 'Internet Archive',
+                  label: `${doc.title || 'Edición Retro'} ${doc.year ? '(' + doc.year + ')' : ''}`
                 });
               }
-            } catch (e) {}
+            });
           }
 
-          // 4. iTunes / App Store HD
-          if (itunesRes?.status === 'fulfilled' && Array.isArray(itunesRes.value.results)) {
+          // 4. Apple iTunes Games HD
+          if (itunesRes.status === 'fulfilled' && Array.isArray(itunesRes.value?.results)) {
             itunesRes.value.results.forEach(app => {
               if (app.artworkUrl512 || app.artworkUrl100) {
                 pushUniqueCover(allCovers, {
@@ -1800,82 +1738,90 @@
         }
 
         // ===============================================================
-        // C. PELÍCULAS Y SERIES (iTunes 1000x1000 HD + TVMaze Galería Completa + TMDB)
+        // C. PELÍCULAS (iTunes Movies HD + IMDb Public API + TVMaze + Wikimedia Commons)
         // ===============================================================
-        else if (format === 'peliculas' || format === 'series') {
-          const tasks = [
-            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=18`).then(r => r.json()),
-            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=tvSeason&limit=18`).then(r => r.json()),
-            fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`).then(r => r.json())
-          ];
+        else if (format === 'peliculas') {
+          const [moviesRes, imdbList, tvmazeRes, wikiRes] = await Promise.allSettled([
+            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=25`).then(r => r.json()),
+            fetchImdbPublicSuggestions(query),
+            fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`).then(r => r.json()),
+            fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query + ' poster')}&gsrlimit=10&prop=imageinfo&iiprop=url&format=json&origin=*`).then(r => r.json())
+          ]);
 
-          if (keys.tmdb) {
-            tasks.push(
-              fetch(`https://api.themoviedb.org/3/search/multi?api_key=${encodeURIComponent(keys.tmdb)}&query=${encodeURIComponent(query)}&language=es-ES`).then(r => r.json())
-            );
-          }
-
-          const [moviesRes, tvRes, tvmazeRes, tmdbRes] = await Promise.allSettled(tasks);
-
-          // Si el usuario puso clave TMDB, traemos pósters internacionales de los primeros resultados
-          if (tmdbRes?.status === 'fulfilled' && Array.isArray(tmdbRes.value?.results)) {
-            const topMatches = tmdbRes.value.results.filter(r => r.media_type === 'movie' || r.media_type === 'tv').slice(0, 3);
-            for (const m of topMatches) {
-              const title = m.title || m.name || query;
-              if (m.poster_path) {
-                pushUniqueCover(allCovers, {
-                  title,
-                  url: `https://image.tmdb.org/t/p/w780${m.poster_path}`,
-                  source: 'TMDB',
-                  label: `${title} (Principal)`
-                });
-              }
-              try {
-                const imgsData = await fetch(`https://api.themoviedb.org/3/${m.media_type}/${m.id}/images?api_key=${encodeURIComponent(keys.tmdb)}`).then(r => r.json());
-                if (Array.isArray(imgsData?.posters)) {
-                  imgsData.posters.slice(0, 16).forEach((p, idx) => {
-                    pushUniqueCover(allCovers, {
-                      title,
-                      url: `https://image.tmdb.org/t/p/w780${p.file_path}`,
-                      source: 'TMDB',
-                      label: `Póster TMDB #${idx + 1} (${p.iso_639_1 || 'Clean'})`
-                    });
-                  });
-                }
-              } catch (e) {}
-            }
-          }
-
-          // iTunes Movies HD
-          if (moviesRes.status === 'fulfilled' && Array.isArray(moviesRes.value.results)) {
+          // 1. Apple iTunes Movies HD (en 600x900 y 1000x1000)
+          if (moviesRes.status === 'fulfilled' && Array.isArray(moviesRes.value?.results)) {
             moviesRes.value.results.forEach(item => {
               if (item.artworkUrl100) {
                 const year = item.releaseDate ? item.releaseDate.slice(0, 4) : '';
+                const title = item.trackName || query;
                 pushUniqueCover(allCovers, {
-                  title: item.trackName || query,
+                  title,
                   url: item.artworkUrl100.replace('100x100bb', '1000x1000bb'),
                   source: 'iTunes HD',
-                  label: `${item.trackName || 'Película'} ${year ? '(' + year + ')' : ''}`
+                  label: `${title} ${year ? '(' + year + ')' : ''}`
                 });
               }
             });
           }
 
-          // iTunes TV Seasons HD
-          if (tvRes.status === 'fulfilled' && Array.isArray(tvRes.value.results)) {
-            tvRes.value.results.forEach(item => {
-              if (item.artworkUrl100) {
+          // 2. IMDb Public Suggestion Index
+          if (imdbList.status === 'fulfilled' && Array.isArray(imdbList.value)) {
+            imdbList.value.forEach(entry => {
+              if (entry.i?.imageUrl) {
+                const hiResImdb = entry.i.imageUrl.replace(/\._V1_.*?\./, '._V1_SX600.');
                 pushUniqueCover(allCovers, {
-                  title: item.collectionName || item.trackName || query,
-                  url: item.artworkUrl100.replace('100x100bb', '1000x1000bb'),
-                  source: 'iTunes HD',
-                  label: item.collectionName || 'Temporada TV'
+                  title: entry.l || query,
+                  url: hiResImdb,
+                  source: 'IMDb',
+                  label: `${entry.l || 'IMDb'} ${entry.y ? '(' + entry.y + ')' : ''}`
                 });
               }
             });
           }
 
-          // TVMaze Search + extracción automática de la galería completa /shows/{id}/images
+          // 3. TVMaze Galería
+          if (tvmazeRes.status === 'fulfilled' && Array.isArray(tvmazeRes.value)) {
+            tvmazeRes.value.slice(0, 4).forEach(entry => {
+              const show = entry.show;
+              const img = show?.image?.original || show?.image?.medium;
+              if (img) {
+                pushUniqueCover(allCovers, {
+                  title: show.name,
+                  url: img,
+                  source: 'TVMaze Galería',
+                  label: `${show.name} (${(show.premiered || '').slice(0, 4)})`
+                });
+              }
+            });
+          }
+
+          // 4. Wikimedia Commons Public Posters
+          if (wikiRes.status === 'fulfilled' && wikiRes.value?.query?.pages) {
+            Object.values(wikiRes.value.query.pages).forEach(pg => {
+              const imgUrl = pg.imageinfo?.[0]?.url;
+              if (imgUrl && /\.(jpg|jpeg|png|webp)$/i.test(imgUrl)) {
+                pushUniqueCover(allCovers, {
+                  title: query,
+                  url: imgUrl,
+                  source: 'Wikimedia',
+                  label: (pg.title || 'Póster Clásico').replace('File:', '')
+                });
+              }
+            });
+          }
+        }
+
+        // ===============================================================
+        // D. SERIES (TVMaze Search + Sub-Galería Completa + iTunes Temporadas HD + IMDb)
+        // ===============================================================
+        else if (format === 'series') {
+          const [tvmazeRes, tvSeasonsRes, imdbList] = await Promise.allSettled([
+            fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`).then(r => r.json()),
+            fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=tvSeason&limit=25`).then(r => r.json()),
+            fetchImdbPublicSuggestions(query)
+          ]);
+
+          // 1. TVMaze Search + Sub-galería completa (/shows/{id}/images) de las primeras 4 series
           if (tvmazeRes.status === 'fulfilled' && Array.isArray(tvmazeRes.value)) {
             const topShows = tvmazeRes.value.slice(0, 4);
             topShows.forEach(entry => {
@@ -1891,14 +1837,13 @@
               }
             });
 
-            // Expandir todos los pósters alternativos de las primeras 3 coincidencias
-            const galleryPromises = topShows.slice(0, 3).map(entry =>
+            const galleryPromises = topShows.map(entry =>
               fetch(`https://api.tvmaze.com/shows/${entry.show.id}/images`).then(r => r.json()).then(imgs => ({ imgs, name: entry.show.name }))
             );
             const galleryResults = await Promise.allSettled(galleryPromises);
             galleryResults.forEach(res => {
               if (res.status === 'fulfilled' && Array.isArray(res.value.imgs)) {
-                res.value.imgs.filter(i => i.type === 'poster' || !i.type).slice(0, 12).forEach((imgObj, idx) => {
+                res.value.imgs.filter(i => i.type === 'poster' || !i.type).slice(0, 14).forEach((imgObj, idx) => {
                   const hi = imgObj.resolutions?.original?.url || imgObj.resolutions?.medium?.url;
                   if (hi) {
                     pushUniqueCover(allCovers, {
@@ -1912,19 +1857,49 @@
               }
             });
           }
+
+          // 2. Apple iTunes TV Seasons HD (Portadas de cada temporada individual)
+          if (tvSeasonsRes.status === 'fulfilled' && Array.isArray(tvSeasonsRes.value?.results)) {
+            tvSeasonsRes.value.results.forEach(item => {
+              if (item.artworkUrl100) {
+                pushUniqueCover(allCovers, {
+                  title: item.collectionName || item.trackName || query,
+                  url: item.artworkUrl100.replace('100x100bb', '1000x1000bb'),
+                  source: 'iTunes HD',
+                  label: item.collectionName || 'Temporada TV'
+                });
+              }
+            });
+          }
+
+          // 3. IMDb Public Suggestion API
+          if (imdbList.status === 'fulfilled' && Array.isArray(imdbList.value)) {
+            imdbList.value.forEach(entry => {
+              if (entry.i?.imageUrl) {
+                const hiResImdb = entry.i.imageUrl.replace(/\._V1_.*?\./, '._V1_SX600.');
+                pushUniqueCover(allCovers, {
+                  title: entry.l || query,
+                  url: hiResImdb,
+                  source: 'IMDb',
+                  label: `${entry.l || 'Serie'} ${entry.y ? '(' + entry.y + ')' : ''}`
+                });
+              }
+            });
+          }
         }
 
         // ===============================================================
-        // D. ANIME Y CÓMICS / MANGA (AniList GraphQL HD + Jikan Galería + Google Cómics + ComicVine)
+        // E. ANIME Y CÓMICS / MANGA (AniList GraphQL + MAL/Jikan Sub-Galería + Kitsu API + Google Cómics + OpenLibrary)
         // ===============================================================
         else if (format === 'anime' || format === 'comics') {
           const isAnime = format === 'anime';
           const anilistMediaType = isAnime ? 'ANIME' : 'MANGA';
           const jikanEndpoint = isAnime ? 'anime' : 'manga';
+          const kitsuEndpoint = isAnime ? 'anime' : 'manga';
 
           const graphqlQuery = `
             query ($search: String, $type: MediaType) {
-              Page(page: 1, perPage: 16) {
+              Page(page: 1, perPage: 18) {
                 media(search: $search, type: $type) {
                   id
                   title { romaji english }
@@ -1941,27 +1916,25 @@
               headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
               body: JSON.stringify({ query: graphqlQuery, variables: { search: query, type: anilistMediaType } })
             }).then(r => r.json()),
-            fetch(`https://api.jikan.moe/v4/${jikanEndpoint}?q=${encodeURIComponent(query)}&limit=14`).then(r => r.json())
+            fetch(`https://api.jikan.moe/v4/${jikanEndpoint}?q=${encodeURIComponent(query)}&limit=14`).then(r => r.json()),
+            fetch(`https://kitsu.io/api/edge/${kitsuEndpoint}?filter[text]=${encodeURIComponent(query)}&page[limit]=16`).then(r => r.json())
           ];
 
           if (!isAnime) {
-            // Para Cómics occidentales (Marvel, DC, Image, novelas gráficas) sumamos Google Books y OpenLibrary
             tasks.push(
-              fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query + ' comic')}&maxResults=24`).then(r => r.json()),
-              fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10`).then(r => r.json())
+              fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query + ' subject:comics')}&maxResults=20`).then(r => r.json()),
+              fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=15`).then(r => r.json()),
+              fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=12`).then(r => r.json())
             );
-            if (keys.comicvine) {
-              const cvUrl = `https://comicvine.gamespot.com/api/search/?api_key=${encodeURIComponent(keys.comicvine)}&format=json&query=${encodeURIComponent(query)}&resources=volume,issue&limit=16`;
-              tasks.push(fetch(`https://corsproxy.io/?${encodeURIComponent(cvUrl)}`).then(r => r.json()));
-            }
           }
 
           const results = await Promise.allSettled(tasks);
           const aniRes = results[0];
           const jikanRes = results[1];
-          const gbComicsRes = !isAnime ? results[2] : null;
-          const olComicsRes = !isAnime ? results[3] : null;
-          const cvRes = (!isAnime && keys.comicvine) ? results[4] : null;
+          const kitsuRes = results[2];
+          const gbComicsSubjectRes = !isAnime ? results[3] : null;
+          const gbComicsGeneralRes = !isAnime ? results[4] : null;
+          const olComicsRes = !isAnime ? results[5] : null;
 
           // 1. AniList GraphQL HD
           if (aniRes?.status === 'fulfilled' && Array.isArray(aniRes.value?.data?.Page?.media)) {
@@ -1972,14 +1945,14 @@
                 pushUniqueCover(allCovers, {
                   title,
                   url: img,
-                  source: 'AniList HD',
+                  source: 'AniList / MAL',
                   label: `${title} ${m.startDate?.year ? '(' + m.startDate.year + ')' : ''}`
                 });
               }
             });
           }
 
-          // 2. Jikan / MyAnimeList + expansión automática de `/pictures` para los 2 primeros resultados
+          // 2. MyAnimeList (Jikan v4) + Sub-galería de pósters y volúmenes (/pictures)
           if (jikanRes?.status === 'fulfilled' && Array.isArray(jikanRes.value?.data)) {
             const entries = jikanRes.value.data;
             entries.forEach(entry => {
@@ -1988,14 +1961,13 @@
                 pushUniqueCover(allCovers, {
                   title: entry.title,
                   url: imgUrl,
-                  source: 'MAL Galería',
-                  label: `${entry.title} (${entry.type || 'Oficial'})`
+                  source: 'AniList / MAL',
+                  label: `${entry.title} (${entry.type || 'MAL'})`
                 });
               }
             });
 
-            // Extraer la galería promocional completa de los primeros 2 resultados de MAL
-            const topMal = entries.slice(0, 2);
+            const topMal = entries.slice(0, 3);
             const picPromises = topMal.map(e =>
               fetch(`https://api.jikan.moe/v4/${jikanEndpoint}/${e.mal_id}/pictures`).then(r => r.json()).then(d => ({ data: d.data, title: e.title }))
             );
@@ -2008,7 +1980,7 @@
                     pushUniqueCover(allCovers, {
                       title: pRes.value.title,
                       url,
-                      source: 'MAL Galería',
+                      source: 'AniList / MAL',
                       label: `${pRes.value.title} · Arte #${idx + 1}`
                     });
                   }
@@ -2017,24 +1989,43 @@
             });
           }
 
-          // 3. Google Books Cómics / Novelas Gráficas
-          if (gbComicsRes?.status === 'fulfilled' && Array.isArray(gbComicsRes.value?.items)) {
-            gbComicsRes.value.items.forEach(item => {
-              const info = item.volumeInfo || {};
-              const links = info.imageLinks || {};
-              const raw = links.extraLarge || links.large || links.medium || links.thumbnail;
-              if (raw) {
+          // 3. Kitsu Open API (Sin clave)
+          if (kitsuRes?.status === 'fulfilled' && Array.isArray(kitsuRes.value?.data)) {
+            kitsuRes.value.data.forEach(k => {
+              const attr = k.attributes || {};
+              const title = attr.canonicalTitle || attr.titles?.en || attr.titles?.en_jp || query;
+              const img = attr.posterImage?.original || attr.posterImage?.large || attr.posterImage?.medium;
+              if (img) {
                 pushUniqueCover(allCovers, {
-                  title: info.title || query,
-                  url: raw.replace('http://', 'https://').replace('&edge=curl', ''),
-                  source: 'Google Cómics',
-                  label: info.title || 'Volumen / Tomo'
+                  title,
+                  url: img,
+                  source: 'Kitsu HD',
+                  label: `${title} ${attr.startDate ? '(' + attr.startDate.slice(0, 4) + ')' : ''}`
                 });
               }
             });
           }
 
-          // 4. OpenLibrary Cómics
+          // 4. Google Books Cómics & Novelas Gráficas
+          [gbComicsSubjectRes, gbComicsGeneralRes].forEach(gbSource => {
+            if (gbSource?.status === 'fulfilled' && Array.isArray(gbSource.value?.items)) {
+              gbSource.value.items.forEach(item => {
+                const info = item.volumeInfo || {};
+                const links = info.imageLinks || {};
+                const raw = links.extraLarge || links.large || links.medium || links.thumbnail;
+                if (raw) {
+                  pushUniqueCover(allCovers, {
+                    title: info.title || query,
+                    url: raw.replace('http://', 'https://').replace('&edge=curl', ''),
+                    source: 'Google Books',
+                    label: info.title || 'Volumen / Tomo'
+                  });
+                }
+              });
+            }
+          });
+
+          // 5. OpenLibrary Cómics
           if (olComicsRes?.status === 'fulfilled' && Array.isArray(olComicsRes.value?.docs)) {
             olComicsRes.value.docs.forEach(doc => {
               if (doc.cover_i) {
@@ -2043,21 +2034,6 @@
                   url: `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`,
                   source: 'OpenLibrary',
                   label: doc.title || 'Edición Impresa'
-                });
-              }
-            });
-          }
-
-          // 5. ComicVine (si tiene clave configurada)
-          if (cvRes?.status === 'fulfilled' && Array.isArray(cvRes.value?.results)) {
-            cvRes.value.results.forEach(cv => {
-              const img = cv.image?.super_url || cv.image?.medium_url;
-              if (img) {
-                pushUniqueCover(allCovers, {
-                  title: cv.name || cv.volume?.name || query,
-                  url: img,
-                  source: 'ComicVine',
-                  label: `${cv.name || 'Cómic'} ${cv.start_year ? '(' + cv.start_year + ')' : ''}`
                 });
               }
             });
@@ -2254,34 +2230,6 @@
     }
 
     /********************************************************************
-     * 7. MODAL DE CLAVES API GRATUITAS (⚙️)
-     ********************************************************************/
-    function openApiKeysModal() {
-      const keys = appState.apiKeys || {};
-      document.getElementById('apikey-sgdb').value = keys.sgdb || '';
-      document.getElementById('apikey-tmdb').value = keys.tmdb || '';
-      document.getElementById('apikey-rawg').value = keys.rawg || '';
-      document.getElementById('apikey-comicvine').value = keys.comicvine || '';
-      document.getElementById('modal-apikeys').classList.remove('hidden');
-    }
-
-    function closeApiKeysModal() {
-      document.getElementById('modal-apikeys').classList.add('hidden');
-    }
-
-    async function saveApiKeysFromModal() {
-      appState.apiKeys = {
-        sgdb: document.getElementById('apikey-sgdb').value.trim(),
-        tmdb: document.getElementById('apikey-tmdb').value.trim(),
-        rawg: document.getElementById('apikey-rawg').value.trim(),
-        comicvine: document.getElementById('apikey-comicvine').value.trim()
-      };
-      await saveStateToDB();
-      closeApiKeysModal();
-      showToast('Claves API guardadas en tu dispositivo', 'success');
-    }
-
-    /********************************************************************
      * 8. FICHA DE DETALLES (ESTRELLAS, ESTADO, FECHA, NOTAS)
      ********************************************************************/
     function openDetailsModal(itemId) {
@@ -2410,6 +2358,16 @@
       document.getElementById('search-query-input').value = itemTitle;
       document.getElementById('modal-search').classList.remove('hidden');
       executeMediaSearch();
+    }
+
+    function downloadCurrentItemCover() {
+      const item = appState.items.find(i => i.id === editingItemId);
+      if (!item || !item.coverData) return;
+      const link = document.createElement('a');
+      link.download = `portada_${item.title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}.webp`;
+      link.href = item.coverData;
+      link.click();
+      showToast('Carátula descargada en tu dispositivo', 'success');
     }
 
     async function deleteCurrentItem() {
