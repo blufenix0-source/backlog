@@ -5537,3 +5537,231 @@
   });
 })();
 </script>
+
+<!-- ===================================================================== -->
+<!-- MINI MÓDULO: 10 ESTRELLAS DECIMALES DEBAJO DE CADA PORTADA            -->
+<!-- Pegar debajo del módulo anterior, justo antes de </body>              -->
+<!-- ===================================================================== -->
+<style>
+  .mv-stars10-wrap {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    line-height: 1;
+    max-width: 100%;
+  }
+  .mv-stars10-track {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5px;
+  }
+  .mv-s10-unit {
+    position: relative;
+    display: inline-block;
+    width: 8.5px;
+    height: 8.5px;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) {
+    .mv-s10-unit {
+      width: 10.5px;
+      height: 10.5px;
+    }
+    .mv-stars10-track {
+      gap: 1px;
+    }
+  }
+  .mv-s10-unit svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .mv-s10-num {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+</style>
+
+<script>
+(function () {
+  const STAR_PATH = 'M12 2l2.92 6.26L22 9.27l-5.12 4.86L18.18 21 12 17.56 5.82 21l1.3-6.87L2 9.27l7.08-1.01L12 2z';
+  let rafId = null;
+
+  function getColor10(val) {
+    if (val >= 9.0) return '#feca57';
+    if (val >= 7.0) return '#00e054';
+    if (val >= 5.0) return '#ff9f43';
+    return '#ff5252';
+  }
+
+  function build10StarsHTML(rawRating) {
+    const val = Math.max(0, Math.min(10, Math.round((Number(rawRating) || 0) * 10) / 10));
+    if (val <= 0) return '';
+
+    const color = getColor10(val);
+    let stars = '';
+
+    for (let i = 1; i <= 10; i++) {
+      const pct = Math.round(Math.max(0, Math.min(1, val - (i - 1))) * 100);
+      if (pct >= 100) {
+        stars += `<span class="mv-s10-unit"><svg viewBox="0 0 24 24" fill="${color}"><path d="${STAR_PATH}"/></svg></span>`;
+      } else if (pct <= 0) {
+        stars += `<span class="mv-s10-unit"><svg viewBox="0 0 24 24" fill="rgba(154,171,187,0.22)"><path d="${STAR_PATH}"/></svg></span>`;
+      } else {
+        stars += `<span class="mv-s10-unit">
+          <svg viewBox="0 0 24 24" fill="rgba(154,171,187,0.22)"><path d="${STAR_PATH}"/></svg>
+          <svg viewBox="0 0 24 24" fill="${color}" style="clip-path:inset(0 ${100 - pct}% 0 0)"><path d="${STAR_PATH}"/></svg>
+        </span>`;
+      }
+    }
+
+    return `<span class="mv-stars10-wrap" title="${val.toFixed(1)} / 10">
+      <span class="mv-stars10-track">${stars}</span>
+      <span class="mv-s10-num" style="color:${color}">${val.toFixed(1)}</span>
+    </span>`;
+  }
+
+  function upgradeCardStars10(node) {
+    if (!node || typeof appState === 'undefined' || !Array.isArray(appState.items)) return;
+
+    const onclickAttr = node.getAttribute('onclick') || '';
+    const match = onclickAttr.match(/openDetailsModal\(['"]([^'"]+)['"]\)/);
+    const itemId = node.getAttribute('data-item-id') || (match ? match[1] : null);
+    if (!itemId) return;
+
+    const item = appState.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const poster = node.classList.contains('poster-card') ? node : node.querySelector('.poster-card');
+    if (!poster) return;
+
+    let cardRoot = node;
+    if (
+      node === poster &&
+      node.parentElement &&
+      !node.parentElement.classList.contains('grid') &&
+      node.parentElement.id !== 'clean-poster-grid'
+    ) {
+      cardRoot = node.parentElement;
+    }
+
+    // Buscar el área debajo de la portada (footer estilo Letterboxd)
+    const footerNodes = Array.from(cardRoot.children).filter(el => el !== poster && !el.contains(poster));
+    if (footerNodes.length === 0) return;
+
+    const rating = Number(item.rating || 0);
+    const ratingKey = rating.toFixed(1);
+
+    // Quitar insignia flotante sobre el póster para no duplicar la nota
+    poster.querySelector('.mv-score10-badge')?.remove();
+
+    // Si ya tiene el mismo valor renderizado, no tocar el DOM
+    const existing = cardRoot.querySelector('[data-mv-stars10="1"]');
+    if (existing && existing.getAttribute('data-mv-s10-val') === ratingKey) return;
+
+    const html10 = build10StarsHTML(rating);
+
+    if (existing) {
+      existing.setAttribute('data-mv-s10-val', ratingKey);
+      existing.innerHTML = html10;
+      return;
+    }
+
+    // 1. Buscar contenedor que el módulo anterior ya marcó
+    for (const f of footerNodes) {
+      const replaced = f.matches('[data-mv-score-replaced="1"]') ? f : f.querySelector('[data-mv-score-replaced="1"]');
+      if (replaced) {
+        replaced.setAttribute('data-mv-stars10', '1');
+        replaced.setAttribute('data-mv-s10-val', ratingKey);
+        replaced.innerHTML = html10;
+        return;
+      }
+    }
+
+    // 2. Buscar iconos FontAwesome de estrellas (1 a 5) debajo de la portada
+    for (const f of footerNodes) {
+      const faStars = Array.from(f.querySelectorAll('.fa-star, .fa-star-half-stroke, .fa-star-half-alt'));
+      if (faStars.length > 0) {
+        const parent = faStars[0].parentElement;
+        const slot = document.createElement('span');
+        slot.setAttribute('data-mv-stars10', '1');
+        slot.setAttribute('data-mv-s10-val', ratingKey);
+        slot.innerHTML = html10;
+        parent.insertBefore(slot, faStars[0]);
+        faStars.forEach(ic => ic.remove());
+        return;
+      }
+    }
+
+    // 3. Buscar estrellas Unicode (★, ☆, ½) debajo de la portada
+    for (const f of footerNodes) {
+      const allEls = [f, ...Array.from(f.querySelectorAll('*'))];
+      const starEl = allEls.find(el => {
+        if (el.children.length > 0) return false;
+        const txt = (el.textContent || '').trim();
+        return txt.length > 0 && /[★☆½]/.test(txt);
+      });
+      if (starEl) {
+        starEl.setAttribute('data-mv-stars10', '1');
+        starEl.setAttribute('data-mv-s10-val', ratingKey);
+        starEl.innerHTML = html10;
+        return;
+      }
+    }
+
+    // 4. Si la obra tiene nota pero aún no existía fila de estrellas debajo
+    if (rating > 0) {
+      const slot = document.createElement('div');
+      slot.setAttribute('data-mv-stars10', '1');
+      slot.setAttribute('data-mv-s10-val', ratingKey);
+      slot.className = 'mt-0.5';
+      slot.innerHTML = html10;
+      footerNodes[0].appendChild(slot);
+    }
+  }
+
+  function applyAllPosterStars10() {
+    const main = document.querySelector('main');
+    if (!main) return;
+    const candidates = main.querySelectorAll('[onclick*="openDetailsModal("], [data-item-id]');
+    candidates.forEach(node => {
+      if (node.closest('#view-tierlists')) return;
+      upgradeCardStars10(node);
+    });
+  }
+
+  function scheduleStars10() {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      applyAllPosterStars10();
+    });
+  }
+
+  // Envolver funciones de renderizado y observar cambios en <main>
+  ['renderFormatView', 'renderHomeFormats', 'renderAllActiveViews'].forEach(fnName => {
+    const orig = window[fnName];
+    if (typeof orig === 'function') {
+      window[fnName] = function () {
+        const res = orig.apply(this, arguments);
+        scheduleStars10();
+        return res;
+      };
+    }
+  });
+
+  window.addEventListener('load', () => {
+    const main = document.querySelector('main');
+    if (main) {
+      const obs = new MutationObserver(scheduleStars10);
+      obs.observe(main, { childList: true, subtree: true });
+    }
+    setTimeout(applyAllPosterStars10, 300);
+  });
+})();
+</script>
