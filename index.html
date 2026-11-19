@@ -4168,8 +4168,8 @@
 </body>
 </html>
 <!-- ===================================================================== -->
-<!-- MÓDULO EXTRA: NOTAS 1-10 DECIMALES + GRUPOS DE TIER LIST E IMÁGENES   -->
-<!-- Pegar justo antes de </body>                                          -->
+<!-- MÓDULO EXTRA v2: NOTAS 1-10 + TIER LISTS AGRUPADAS (UI/UX PULIDA)     -->
+<!-- Reemplaza al módulo anterior justo antes de </body>                   -->
 <!-- ===================================================================== -->
 <style>
   /* Insignia de nota 1-10 en tarjetas */
@@ -4182,32 +4182,34 @@
     padding: 2px 6px;
     border-radius: 6px;
     background: rgba(20, 24, 28, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     line-height: 1.2;
   }
-  /* Filas arrastrables limpias en Tier List */
-  .mv-tier-row-dragging {
-    opacity: 0.45;
-    outline: 2px dashed #40bcf4;
-  }
-  .mv-tier-row-over {
-    border-top: 3px solid #00e054 !important;
-  }
-  .mv-tier-handle {
-    cursor: grab;
-    user-select: none;
-    touch-action: none;
-  }
-  .mv-tier-handle:active {
-    cursor: grabbing;
-  }
-  /* Tamaños y proporción en Tier List */
+
+  /* Barras horizontales limpias sin scrollbar visible */
+  .mv-no-scrollbar::-webkit-scrollbar { display: none; }
+  .mv-no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Filas arrastrables limpias */
+  .mv-tier-row-dragging { opacity: 0.45; outline: 2px dashed #40bcf4; }
+  .mv-tier-row-over { border-top: 3px solid #00e054 !important; }
+  .mv-tier-handle { cursor: grab; user-select: none; touch-action: none; }
+  .mv-tier-handle:active { cursor: grabbing; }
+
+  /* Densidad y proporción en Tier List */
   .mv-thumb-sm.mv-ratio-poster { width: 46px; height: 69px; }
   .mv-thumb-md.mv-ratio-poster { width: 60px; height: 90px; }
   .mv-thumb-lg.mv-ratio-poster { width: 76px; height: 114px; }
   .mv-thumb-sm.mv-ratio-square { width: 54px; height: 54px; }
   .mv-thumb-md.mv-ratio-square { width: 68px; height: 68px; }
   .mv-thumb-lg.mv-ratio-square { width: 84px; height: 84px; }
+
+  /* Animación sutil para popovers y modales */
+  @keyframes mvFadeIn {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .mv-popover-panel { animation: mvFadeIn 0.14s ease-out; }
 </style>
 
 <script>
@@ -4221,21 +4223,41 @@
     editingId: null,
     editingRating: 0,
     activeGroup: 'General',
-    trayTab: 'custom', // 'custom' | 'catalog'
+    trayTab: 'custom',      // 'custom' | 'catalog'
     customScope: 'sublist', // 'sublist' | 'group'
-    thumbSize: 'sm', // 'sm' | 'md' | 'lg'
-    thumbRatio: 'poster', // 'poster' | 'square'
+    thumbSize: 'sm',        // 'sm' | 'md' | 'lg'
+    thumbRatio: 'poster',   // 'poster' | 'square'
     trayFormat: 'all',
     trayOrg: 'all',
     trayQuery: '',
     selectedCoverId: null,
     draggedCoverId: null,
     draggedRowId: null,
-    editingRowId: null
+    editingRowId: null,
+    openMenu: null,         // 'group' | 'sublist' | null
+    dialog: null            // { type, payload }
   };
 
+  function esc(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function toast(msg, type = 'success') {
+    if (typeof showToast === 'function') showToast(msg, type);
+  }
+
+  async function persist() {
+    if (typeof saveStateToDB === 'function') await saveStateToDB();
+  }
+
   /* -------------------------------------------------------------------
-   * 1. ESTRUCTURA COMPATIBLE CON appState.settings (NUNCA SE PIERDE)
+   * 1. DATOS PERSISTENTES (100% COMPATIBLE CON TUS LISTAS ANTERIORES)
    * ------------------------------------------------------------------- */
   function ensureModData() {
     if (typeof appState === 'undefined' || !appState) return false;
@@ -4249,7 +4271,7 @@
     if (!Array.isArray(appState.tierLists) || appState.tierLists.length === 0) {
       appState.tierLists = [{
         id: 'tier_' + Date.now(),
-        name: 'General',
+        name: 'Principal',
         group: 'General',
         rows: makeDefaultRows()
       }];
@@ -4261,9 +4283,8 @@
       }
     });
     if (!appState.settings.tierGroups.includes(mvMod.activeGroup)) {
-      const cur = appState.tierLists.find(t => {
-        try { return t.id === currentTierListId; } catch (e) { return false; }
-      });
+      let cur = null;
+      try { cur = appState.tierLists.find(t => t.id === currentTierListId); } catch (e) {}
       mvMod.activeGroup = cur ? cur.group : appState.settings.tierGroups[0];
     }
     return true;
@@ -4288,6 +4309,12 @@
     return '#ff5252';
   }
 
+  function formatRating10(val) {
+    const n = Number(val || 0);
+    if (n <= 0) return 'Sin nota';
+    return (Math.round(n * 10) / 10).toFixed(1);
+  }
+
   function getAnyTierItem(id) {
     ensureModData();
     const fromCatalog = (appState.items || []).find(i => i.id === id);
@@ -4297,14 +4324,35 @@
     return null;
   }
 
-  function formatRating10(val) {
-    const n = Number(val || 0);
-    if (n <= 0) return 'Sin nota';
-    return (Math.round(n * 10) / 10).toFixed(1);
+  function getListsInGroup(groupName) {
+    ensureModData();
+    return appState.tierLists.filter(t => (t.group || 'General') === groupName);
+  }
+
+  function getActiveSubTierList() {
+    ensureModData();
+    let groupLists = getListsInGroup(mvMod.activeGroup);
+    if (groupLists.length === 0) {
+      const created = {
+        id: 'tier_' + Date.now(),
+        name: 'Principal',
+        group: mvMod.activeGroup,
+        rows: makeDefaultRows()
+      };
+      appState.tierLists.push(created);
+      groupLists = [created];
+    }
+    let found = null;
+    try { found = groupLists.find(t => t.id === currentTierListId); } catch (e) {}
+    if (!found) {
+      found = groupLists[0];
+      try { currentTierListId = found.id; } catch (e) {}
+    }
+    return found;
   }
 
   /* -------------------------------------------------------------------
-   * 2. PUNTUACIÓN DE 1 A 10 CON DECIMALES EN FICHA Y ESTANTERÍA
+   * 2. SISTEMA DE NOTAS 0.0 A 10.0 CON DECIMALES
    * ------------------------------------------------------------------- */
   function renderRating10Widget() {
     const container = document.getElementById('detail-stars-widget');
@@ -4315,36 +4363,36 @@
     mvMod.editingRating = val;
     try { editingItemRating = val; } catch (e) {}
 
-    const col = getScoreColor(val);
-    label.style.color = col;
-    label.textContent = val > 0 ? `${val.toFixed(1)} / 10` : 'Sin calificar';
+    label.style.color = getScoreColor(val);
+    label.textContent = val > 0 ? `${val.toFixed(1)} / 10` : 'Sin nota';
 
-    container.className = 'w-full space-y-2 mt-1';
+    container.className = 'w-full space-y-2 mt-1.5';
     container.innerHTML = `
       <div class="flex items-center gap-2 w-full">
         <input type="range" min="0" max="10" step="0.1" value="${val}"
                oninput="window._mvSetRating10(this.value, true)"
-               class="flex-1 accent-[#00e054] cursor-pointer h-2 rounded-lg bg-[#2c3440]" />
-        <input id="mv-rating10-num" type="number" min="0" max="10" step="0.1" value="${val > 0 ? val.toFixed(1) : ''}" placeholder="0.0"
+               class="flex-1 accent-[#00e054] cursor-pointer h-1.5 rounded-lg bg-[#2c3440]" />
+        <input id="mv-rating10-num" type="number" min="0" max="10" step="0.1"
+               value="${val > 0 ? val.toFixed(1) : ''}" placeholder="0.0"
                onchange="window._mvSetRating10(this.value, false)"
-               class="w-16 px-2 py-1 rounded-lg bg-[#1f252c] border border-[#333d4b] text-white text-xs font-extrabold text-center focus:outline-none focus:border-[#00e054]" />
+               class="w-16 px-2 py-1 rounded-lg bg-[#1b2128] border border-white/10 text-white text-xs font-extrabold text-center focus:outline-none focus:border-[#00e054]" />
       </div>
       <div class="flex flex-wrap items-center gap-1">
         ${[1,2,3,4,5,6,7,8,9,10].map(n => `
           <button type="button" onclick="window._mvSetRating10(${n}, false)"
-                  class="px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
+                  class="w-6 h-6 rounded-md text-[10px] font-bold transition-colors ${
                     Math.floor(val) === n && val > 0
-                      ? 'bg-[#00e054] text-black border-[#00e054]'
-                      : 'bg-[#1f252c] text-[#9ab] hover:text-white border-[#333d4b]'
+                      ? 'bg-[#00e054] text-black'
+                      : 'bg-[#1b2128] text-[#9ab] hover:text-white border border-white/5'
                   }">${n}</button>
         `).join('')}
         <button type="button" onclick="window._mvStepRating10(-0.5)"
-                class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#2c3440] text-white hover:bg-[#333d4b]">-0.5</button>
+                class="px-1.5 h-6 rounded-md text-[10px] font-bold bg-[#262e38] text-white hover:bg-[#333d4b]">-0.5</button>
         <button type="button" onclick="window._mvStepRating10(0.5)"
-                class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#2c3440] text-white hover:bg-[#333d4b]">+0.5</button>
+                class="px-1.5 h-6 rounded-md text-[10px] font-bold bg-[#262e38] text-white hover:bg-[#333d4b]">+0.5</button>
         ${val > 0 && val <= 5 ? `
-          <button type="button" onclick="window._mvSetRating10(${(val * 2).toFixed(1)}, false)" title="Convertir nota antigua de escala 5 a escala 10"
-                  class="ml-auto px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#ff8000]/20 text-[#ff8000] border border-[#ff8000]/40 hover:bg-[#ff8000] hover:text-black">×2</button>
+          <button type="button" onclick="window._mvSetRating10(${(val * 2).toFixed(1)}, false)" title="Convertir nota vieja de escala 5 a escala 10"
+                  class="ml-auto px-2 h-6 rounded-md text-[10px] font-bold bg-[#ff8000]/15 text-[#ff8000] border border-[#ff8000]/30 hover:bg-[#ff8000] hover:text-black">×2</button>
         ` : ''}
       </div>
     `;
@@ -4362,7 +4410,7 @@
       const numInp = document.getElementById('mv-rating10-num');
       if (label) {
         label.style.color = getScoreColor(mvMod.editingRating);
-        label.textContent = mvMod.editingRating > 0 ? `${mvMod.editingRating.toFixed(1)} / 10` : 'Sin calificar';
+        label.textContent = mvMod.editingRating > 0 ? `${mvMod.editingRating.toFixed(1)} / 10` : 'Sin nota';
       }
       if (numInp) numInp.value = mvMod.editingRating > 0 ? mvMod.editingRating.toFixed(1) : '';
     } else {
@@ -4375,7 +4423,6 @@
     window._mvSetRating10(next, false);
   };
 
-  // Envolver funciones de la ficha de detalles
   const origOpenDetails = window.openDetailsModal;
   if (typeof origOpenDetails === 'function') {
     window.openDetailsModal = function (itemId) {
@@ -4386,11 +4433,7 @@
       renderRating10Widget();
     };
   }
-
-  window.setDetailRating = function (val) {
-    window._mvSetRating10(val, false);
-  };
-
+  window.setDetailRating = function (val) { window._mvSetRating10(val, false); };
   window.renderDetailStarsWidget = renderRating10Widget;
 
   const origSaveDetails = window.saveDetailsModal;
@@ -4404,45 +4447,38 @@
         const item = appState.items.find(i => i.id === targetId);
         if (item && item.rating !== targetRating) {
           item.rating = targetRating;
-          if (typeof saveStateToDB === 'function') await saveStateToDB();
+          await persist();
           if (typeof renderAllActiveViews === 'function') renderAllActiveViews();
         }
       }
     };
   }
 
-  // Mostrar nota /10 limpia en las portadas de la estantería
   function enhanceGridRatings10() {
     const grid = document.getElementById('clean-poster-grid');
     if (!grid || typeof appState === 'undefined') return;
-    const clickableNodes = grid.querySelectorAll('[onclick*="openDetailsModal("]');
-    clickableNodes.forEach(node => {
+    const nodes = grid.querySelectorAll('[onclick*="openDetailsModal("]');
+    nodes.forEach(node => {
       const attr = node.getAttribute('onclick') || '';
       const m = attr.match(/openDetailsModal\(['"]([^'"]+)['"]\)/);
       if (!m) return;
       const item = (appState.items || []).find(i => i.id === m[1]);
       if (!item) return;
 
-      // Si existe barra de estrellas antigua en el footer de la tarjeta, actualizarla
       const cardRoot = node.classList.contains('poster-card') ? (node.parentElement !== grid ? node.parentElement : node) : node;
-      const starRows = cardRoot.querySelectorAll('.fa-star, .fa-star-half-stroke');
-      starRows.forEach(ic => {
+      cardRoot.querySelectorAll('.fa-star, .fa-star-half-stroke').forEach(ic => {
         const box = ic.closest('div');
         if (box && !box.dataset.mvScoreReplaced && box.parentElement !== cardRoot) {
           box.dataset.mvScoreReplaced = '1';
-          if (item.rating > 0) {
-            box.innerHTML = `<span style="color:${getScoreColor(item.rating)};font-weight:800;font-size:11px;">★ ${formatRating10(item.rating)}<span style="opacity:.65;font-weight:600">/10</span></span>`;
-          } else {
-            box.innerHTML = '';
-          }
+          box.innerHTML = item.rating > 0
+            ? `<span style="color:${getScoreColor(item.rating)};font-weight:800;font-size:11px;">★ ${formatRating10(item.rating)}<span style="opacity:.55;font-weight:600">/10</span></span>`
+            : '';
         }
       });
 
-      // Colocar insignia limpia en esquina inferior izquierda del póster si tiene nota
       const poster = node.classList.contains('poster-card') ? node : node.querySelector('.poster-card');
       if (poster) {
-        const prev = poster.querySelector('.mv-score10-badge');
-        if (prev) prev.remove();
+        poster.querySelector('.mv-score10-badge')?.remove();
         if (item.rating > 0) {
           const badge = document.createElement('span');
           badge.className = 'mv-score10-badge absolute bottom-1.5 left-1.5 z-10 pointer-events-none';
@@ -4464,38 +4500,8 @@
   }
 
   /* -------------------------------------------------------------------
-   * 3. TIER LISTS CON GRUPOS (EJ: FIRE EMBLEM -> JUEGOS/LIBROS/PERSONAJES)
-   *    + SUBIDA MÚLTIPLE DE IMÁGENES + FILAS ARRASTRABLES LIMPIAS
+   * 3. RENDERIZADO UI/UX PULIDO DE TIER LISTS (CATEGORÍAS + SUB-LISTAS)
    * ------------------------------------------------------------------- */
-  function getListsInGroup(groupName) {
-    ensureModData();
-    return appState.tierLists.filter(t => (t.group || 'General') === groupName);
-  }
-
-  function getActiveSubTierList() {
-    ensureModData();
-    let groupLists = getListsInGroup(mvMod.activeGroup);
-    if (groupLists.length === 0) {
-      const created = {
-        id: 'tier_' + Date.now(),
-        name: 'Principal',
-        group: mvMod.activeGroup,
-        rows: makeDefaultRows()
-      };
-      appState.tierLists.push(created);
-      groupLists = [created];
-    }
-    let found = null;
-    try {
-      found = groupLists.find(t => t.id === currentTierListId);
-    } catch (e) {}
-    if (!found) {
-      found = groupLists[0];
-      try { currentTierListId = found.id; } catch (e) {}
-    }
-    return found;
-  }
-
   function compressUploadedImage(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -4503,22 +4509,15 @@
         const img = new Image();
         img.onload = () => {
           const maxSide = 320;
-          let w = img.width;
-          let h = img.height;
+          let w = img.width, h = img.height;
           if (w > maxSide || h > maxSide) {
-            if (w >= h) {
-              h = Math.round((h * maxSide) / w);
-              w = maxSide;
-            } else {
-              w = Math.round((w * maxSide) / h);
-              h = maxSide;
-            }
+            if (w >= h) { h = Math.round((h * maxSide) / w); w = maxSide; }
+            else { w = Math.round((w * maxSide) / h); h = maxSide; }
           }
           const canvas = document.createElement('canvas');
           canvas.width = w;
           canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
           resolve(canvas.toDataURL('image/webp', 0.8));
         };
         img.onerror = () => resolve(e.target.result);
@@ -4528,29 +4527,14 @@
     });
   }
 
-  function renderGroupedTierListUI() {
-    if (!ensureModData()) return;
-    const section = document.getElementById('view-tierlists');
-    if (!section) return;
-
-    const groups = appState.settings.tierGroups;
-    const activeGroup = mvMod.activeGroup;
-    const subLists = getListsInGroup(activeGroup);
-    const tier = getActiveSubTierList();
-
-    const placedIds = new Set();
-    (tier.rows || []).forEach(r => (r.itemIds || []).forEach(id => placedIds.add(id)));
-
-    const sizeClass = mvMod.thumbSize === 'sm' ? 'mv-thumb-sm' : mvMod.thumbSize === 'lg' ? 'mv-thumb-lg' : 'mv-thumb-md';
-    const ratioClass = mvMod.thumbRatio === 'square' ? 'mv-ratio-square' : 'mv-ratio-poster';
-
-    // Filtrar bandeja según pestaña (Imágenes subidas vs Mi Catálogo)
+  function getFilteredTrayItems(tier, placedIds) {
     let trayItems = [];
     if (mvMod.trayTab === 'custom') {
       trayItems = (appState.settings.tierCustomImages || []).filter(img => {
         if (placedIds.has(img.id)) return false;
-        if (mvMod.customScope === 'sublist') return img.tierListId === tier.id;
-        return img.group === activeGroup;
+        return mvMod.customScope === 'sublist'
+          ? img.tierListId === tier.id
+          : img.group === mvMod.activeGroup;
       });
     } else {
       trayItems = (appState.items || []).filter(i => !placedIds.has(i.id));
@@ -4569,6 +4553,52 @@
       const q = mvMod.trayQuery.trim().toLowerCase();
       trayItems = trayItems.filter(i => (i.title || '').toLowerCase().includes(q));
     }
+    return trayItems;
+  }
+
+  function renderTrayGridOnly() {
+    const trayEl = document.getElementById('tier-unranked-tray');
+    if (!trayEl || !ensureModData()) return;
+    const tier = getActiveSubTierList();
+    const placedIds = new Set();
+    (tier.rows || []).forEach(r => (r.itemIds || []).forEach(id => placedIds.add(id)));
+
+    const sizeClass = mvMod.thumbSize === 'sm' ? 'mv-thumb-sm' : mvMod.thumbSize === 'lg' ? 'mv-thumb-lg' : 'mv-thumb-md';
+    const ratioClass = mvMod.thumbRatio === 'square' ? 'mv-ratio-square' : 'mv-ratio-poster';
+    const trayItems = getFilteredTrayItems(tier, placedIds);
+
+    if (trayItems.length === 0) {
+      trayEl.innerHTML = `
+        <div class="w-full py-7 px-4 text-center space-y-1">
+          <p class="text-xs font-medium text-[#9ab]">
+            ${mvMod.trayQuery.trim()
+              ? `No hay coincidencias para "${esc(mvMod.trayQuery)}".`
+              : mvMod.trayTab === 'custom'
+                ? 'Esta bandeja está vacía. Sube retratos, portadas o capturas para clasificarlos aquí.'
+                : 'No hay más obras de tu catálogo sin clasificar con este filtro.'}
+          </p>
+        </div>
+      `;
+    } else {
+      trayEl.innerHTML = trayItems.map(item => renderThumbHTML(item, sizeClass, ratioClass)).join('');
+    }
+  }
+
+  function renderGroupedTierListUI() {
+    if (!ensureModData()) return;
+    const section = document.getElementById('view-tierlists');
+    if (!section) return;
+
+    const groups = appState.settings.tierGroups;
+    const activeGroup = mvMod.activeGroup;
+    const subLists = getListsInGroup(activeGroup);
+    const tier = getActiveSubTierList();
+
+    const placedIds = new Set();
+    (tier.rows || []).forEach(r => (r.itemIds || []).forEach(id => placedIds.add(id)));
+
+    const sizeClass = mvMod.thumbSize === 'sm' ? 'mv-thumb-sm' : mvMod.thumbSize === 'lg' ? 'mv-thumb-lg' : 'mv-thumb-md';
+    const ratioClass = mvMod.thumbRatio === 'square' ? 'mv-ratio-square' : 'mv-ratio-poster';
 
     const customCountHere = (appState.settings.tierCustomImages || []).filter(img =>
       mvMod.customScope === 'sublist' ? img.tierListId === tier.id : img.group === activeGroup
@@ -4577,246 +4607,320 @@
     const selectedItemObj = mvMod.selectedCoverId ? getAnyTierItem(mvMod.selectedCoverId) : null;
 
     section.innerHTML = `
-      <!-- CABECERA DE GRUPO (EJ: FIRE EMBLEM) Y SUB-LISTAS (JUEGOS / LIBROS / PERSONAJES) -->
-      <div class="bg-[#1f252c] p-3.5 sm:p-4 rounded-2xl border border-[#333d4b] space-y-3.5 w-full">
-        <!-- Nivel 1: Categoría / Grupo Principal -->
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#333d4b]">
-          <div class="flex flex-wrap items-center gap-2 min-w-0 flex-1">
-            <span class="text-xs font-extrabold uppercase tracking-wider text-[#ff8000] flex items-center gap-1.5">
-              <i class="fa-solid fa-folder-open"></i>
-              <span>Categoría:</span>
-            </span>
-            <select onchange="window._mvSelectGroup(this.value)"
-                    class="bg-[#14181c] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl border border-[#333d4b] focus:outline-none focus:border-[#ff8000] min-w-[160px]">
-              ${groups.map(g => `<option value="${escapeHtml(g)}" ${g === activeGroup ? 'selected' : ''}>${escapeHtml(g)} (${getListsInGroup(g).length})</option>`).join('')}
-            </select>
-            <button onclick="window._mvCreateGroup()" class="px-3 py-2 rounded-xl bg-[#ff8000] hover:opacity-95 text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
-              <i class="fa-solid fa-folder-plus"></i>
-              <span>+ Categoría</span>
-            </button>
-            <button onclick="window._mvRenameGroup()" title="Renombrar esta categoría" class="px-2.5 py-2 rounded-xl bg-[#2c3440] hover:bg-[#333d4b] text-white text-xs">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            ${groups.length > 1 ? `
-              <button onclick="window._mvDeleteGroup()" title="Eliminar categoría" class="px-2.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-300 text-xs border border-red-500/30">
-                <i class="fa-solid fa-trash-can"></i>
+      <div class="space-y-4 w-full">
+
+        <!-- NIVEL 1: SELECTOR DE CATEGORÍAS (PILLS LIMPIOS Y DESLIZABLES) -->
+        <div class="flex items-center gap-2 overflow-x-auto mv-no-scrollbar pb-0.5">
+          ${groups.map((g, idx) => {
+            const isAct = g === activeGroup;
+            const count = getListsInGroup(g).length;
+            return `
+              <button onclick="window._mvSelectGroupByIdx(${idx})"
+                      class="flex-shrink-0 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border ${
+                        isAct
+                          ? 'bg-[#262f3a] text-white border-white/15 shadow-sm'
+                          : 'bg-transparent text-[#9ab] hover:text-white hover:bg-white/[0.04] border-transparent'
+                      }">
+                <span class="w-1.5 h-1.5 rounded-full ${isAct ? 'bg-[#00e054]' : 'bg-[#45505e]'}"></span>
+                <span>${esc(g)}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md ${isAct ? 'bg-black/30 text-white/80' : 'bg-white/[0.04] text-[#7c8a99]'}">${count}</span>
               </button>
-            ` : ''}
+            `;
+          }).join('')}
+
+          <button onclick="window._mvOpenDialog('createGroup')"
+                  class="flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold text-[#9ab] hover:text-white hover:bg-white/[0.05] border border-dashed border-white/15 hover:border-white/30 transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Nueva categoría</span>
+          </button>
+        </div>
+
+        <!-- NIVEL 2: TARJETA DEL ESPACIO DE TRABAJO (TÍTULO + PESTAÑAS DE SUB-LISTAS) -->
+        <div class="bg-[#1b2128] rounded-2xl border border-white/[0.08] shadow-lg overflow-visible">
+
+          <!-- Cabecera de la Categoría Activa -->
+          <div class="px-4 sm:px-5 pt-4 pb-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="min-w-0">
+                <span class="block text-[10px] font-bold uppercase tracking-widest text-[#7c8a99]">Categoría</span>
+                <div class="flex items-center gap-1.5">
+                  <h2 class="text-lg sm:text-xl font-extrabold text-white tracking-tight truncate">${esc(activeGroup)}</h2>
+
+                  <!-- Menú discreto (⋯) para gestionar la categoría -->
+                  <div class="relative mv-popover-wrap">
+                    <button onclick="window._mvToggleMenu(event, 'group')" title="Opciones de categoría"
+                            class="w-7 h-7 rounded-lg text-[#7c8a99] hover:text-white hover:bg-white/[0.07] flex items-center justify-center transition-colors">
+                      <i class="fa-solid fa-ellipsis text-xs"></i>
+                    </button>
+                    ${mvMod.openMenu === 'group' ? `
+                      <div class="mv-popover-panel absolute left-0 mt-1.5 w-48 rounded-xl bg-[#222a33] border border-white/10 shadow-2xl py-1.5 z-40 text-xs">
+                        <button onclick="window._mvOpenDialog('renameGroup')" class="w-full px-3.5 py-2 text-left text-white hover:bg-white/[0.07] flex items-center gap-2.5">
+                          <i class="fa-solid fa-pen text-[#9ab] w-3.5"></i><span>Renombrar categoría</span>
+                        </button>
+                        <button onclick="window._mvOpenDialog('createSub')" class="w-full px-3.5 py-2 text-left text-white hover:bg-white/[0.07] flex items-center gap-2.5">
+                          <i class="fa-solid fa-plus text-[#00e054] w-3.5"></i><span>Añadir sub-lista</span>
+                        </button>
+                        ${groups.length > 1 ? `
+                          <div class="my-1 border-t border-white/[0.07]"></div>
+                          <button onclick="window._mvOpenDialog('deleteGroup')" class="w-full px-3.5 py-2 text-left text-red-300 hover:bg-red-500/15 flex items-center gap-2.5">
+                            <i class="fa-solid fa-trash-can w-3.5"></i><span>Eliminar categoría</span>
+                          </button>
+                        ` : ''}
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones principales limpias -->
+            <div class="flex items-center gap-2">
+              <button onclick="window._mvAddTierRow()"
+                      class="h-8 px-3 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-[#dce4ec] text-xs font-semibold border border-white/[0.08] flex items-center gap-1.5 transition-colors">
+                <i class="fa-solid fa-plus text-[10px] text-[#9ab]"></i>
+                <span>Fila</span>
+              </button>
+              <button onclick="window._mvExportTierPNG()"
+                      class="h-8 px-3.5 rounded-lg bg-[#00e054] hover:bg-[#00c84b] text-black text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors">
+                <i class="fa-solid fa-arrow-down-to-bracket text-[11px]"></i>
+                <span>Exportar PNG</span>
+              </button>
+            </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-1.5">
-            <button onclick="window._mvAddTierRow()" class="px-2.5 py-2 rounded-xl bg-[#2c3440] hover:bg-[#333d4b] text-white text-xs font-semibold flex items-center gap-1">
-              <i class="fa-solid fa-plus text-[#40bcf4]"></i><span>Fila</span>
-            </button>
-            <button onclick="window._mvClearSubList()" class="px-2.5 py-2 rounded-xl bg-[#2c3440] hover:bg-[#333d4b] text-[#9ab] hover:text-white text-xs font-semibold">
-              Vaciar
-            </button>
-            <button onclick="window._mvExportTierPNG()" class="px-3 py-2 rounded-xl bg-[#00e054] hover:opacity-95 text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
-              <i class="fa-solid fa-download"></i><span>PNG</span>
-            </button>
+          <!-- Barra de Sub-listas (Pestañas con línea inferior) + Controles discretos -->
+          <div class="px-4 sm:px-5 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <!-- Pestañas de sub-listas -->
+            <div class="flex items-center gap-1 overflow-x-auto mv-no-scrollbar -mb-px pt-1">
+              ${subLists.map(sub => {
+                const isAct = sub.id === tier.id;
+                const rankedCount = (sub.rows || []).reduce((acc, r) => acc + (r.itemIds || []).length, 0);
+                return `
+                  <button onclick="window._mvSelectSubList('${sub.id}')"
+                          class="flex-shrink-0 relative px-3 py-2.5 text-xs font-semibold transition-colors flex items-center gap-1.5 border-b-2 ${
+                            isAct
+                              ? 'text-white border-[#00e054]'
+                              : 'text-[#8c9baa] hover:text-white border-transparent'
+                          }">
+                    <span>${esc(sub.name)}</span>
+                    ${rankedCount > 0 ? `<span class="text-[10px] ${isAct ? 'text-[#00e054]' : 'text-[#637180]'}">${rankedCount}</span>` : ''}
+                  </button>
+                `;
+              }).join('')}
+
+              <button onclick="window._mvOpenDialog('createSub')"
+                      title="Crear nueva sub-lista en ${esc(activeGroup)}"
+                      class="flex-shrink-0 ml-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#7c8a99] hover:text-white hover:bg-white/[0.05] transition-colors flex items-center gap-1">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span class="hidden sm:inline">Sub-lista</span>
+              </button>
+            </div>
+
+            <!-- Controles de vista de la sub-lista activa + menú (⋯) -->
+            <div class="flex items-center justify-between sm:justify-end gap-2 py-2 sm:py-1.5 border-t sm:border-t-0 border-white/[0.05]">
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <!-- Proporción -->
+                <div class="inline-flex bg-[#14181c] p-0.5 rounded-lg border border-white/[0.06]">
+                  <button onclick="window._mvSetRatio('poster')" title="Proporción póster 2:3"
+                          class="px-2 py-1 rounded-md font-semibold transition-colors ${mvMod.thumbRatio === 'poster' ? 'bg-[#2a333e] text-white' : 'text-[#7c8a99] hover:text-white'}">2:3</button>
+                  <button onclick="window._mvSetRatio('square')" title="Proporción cuadrada 1:1 (ideal personajes)"
+                          class="px-2 py-1 rounded-md font-semibold transition-colors ${mvMod.thumbRatio === 'square' ? 'bg-[#2a333e] text-white' : 'text-[#7c8a99] hover:text-white'}">1:1</button>
+                </div>
+
+                <!-- Tamaño -->
+                <div class="inline-flex bg-[#14181c] p-0.5 rounded-lg border border-white/[0.06]">
+                  <button onclick="window._mvSetSize('sm')" class="px-2 py-1 rounded-md font-semibold transition-colors ${mvMod.thumbSize === 'sm' ? 'bg-[#2a333e] text-white' : 'text-[#7c8a99] hover:text-white'}">S</button>
+                  <button onclick="window._mvSetSize('md')" class="px-2 py-1 rounded-md font-semibold transition-colors ${mvMod.thumbSize === 'md' ? 'bg-[#2a333e] text-white' : 'text-[#7c8a99] hover:text-white'}">M</button>
+                  <button onclick="window._mvSetSize('lg')" class="px-2 py-1 rounded-md font-semibold transition-colors ${mvMod.thumbSize === 'lg' ? 'bg-[#2a333e] text-white' : 'text-[#7c8a99] hover:text-white'}">L</button>
+                </div>
+              </div>
+
+              <!-- Menú discreto (⋯) para la sub-lista activa -->
+              <div class="relative mv-popover-wrap">
+                <button onclick="window._mvToggleMenu(event, 'sublist')" title="Opciones de esta sub-lista"
+                        class="h-7 px-2 rounded-lg text-[#8c9baa] hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/[0.08] flex items-center gap-1 text-xs transition-colors">
+                  <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+                ${mvMod.openMenu === 'sublist' ? `
+                  <div class="mv-popover-panel absolute right-0 mt-1.5 w-52 rounded-xl bg-[#222a33] border border-white/10 shadow-2xl py-1.5 z-40 text-xs">
+                    <div class="px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#7c8a99] truncate">
+                      Sub-lista: ${esc(tier.name)}
+                    </div>
+                    <button onclick="window._mvOpenDialog('renameSub')" class="w-full px-3.5 py-2 text-left text-white hover:bg-white/[0.07] flex items-center gap-2.5">
+                      <i class="fa-solid fa-pen text-[#9ab] w-3.5"></i><span>Renombrar sub-lista</span>
+                    </button>
+                    ${groups.length > 1 ? `
+                      <button onclick="window._mvOpenDialog('moveSub')" class="w-full px-3.5 py-2 text-left text-white hover:bg-white/[0.07] flex items-center gap-2.5">
+                        <i class="fa-solid fa-folder-arrow-up text-[#40bcf4] w-3.5"></i><span>Mover a otra categoría</span>
+                      </button>
+                    ` : ''}
+                    <button onclick="window._mvOpenDialog('clearSub')" class="w-full px-3.5 py-2 text-left text-white hover:bg-white/[0.07] flex items-center gap-2.5">
+                      <i class="fa-solid fa-rotate-left text-[#ff9f43] w-3.5"></i><span>Vaciar tablero</span>
+                    </button>
+                    <div class="my-1 border-t border-white/[0.07]"></div>
+                    <button onclick="window._mvOpenDialog('deleteSub')" class="w-full px-3.5 py-2 text-left text-red-300 hover:bg-red-500/15 flex items-center gap-2.5">
+                      <i class="fa-solid fa-trash-can w-3.5"></i><span>Eliminar sub-lista</span>
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Nivel 2: Sub-listas dentro de la categoría activa (Pestañas) -->
-        <div class="space-y-2">
-          <div class="flex flex-wrap items-center gap-1.5">
-            ${subLists.map(sub => {
-              const active = sub.id === tier.id;
-              return `
-                <button onclick="window._mvSelectSubList('${sub.id}')"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
-                          active
-                            ? 'bg-[#00e054] text-black border-[#00e054] shadow'
-                            : 'bg-[#14181c] text-[#9ab] hover:text-white border-[#333d4b]'
-                        }">
-                  <span>${escapeHtml(sub.name)}</span>
-                </button>
-              `;
-            }).join('')}
-            <button onclick="window._mvCreateSubList()"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#2c3440] hover:bg-[#333d4b] text-[#00e054] border border-dashed border-[#00e054]/50 flex items-center gap-1">
-              <i class="fa-solid fa-plus"></i><span>Nueva sub-lista</span>
-            </button>
-          </div>
-
-          <!-- Controles rápidos de la sub-lista activa + tamaño/proporción -->
-          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
+        <!-- BARRA FLOTANTE DE ASIGNACIÓN EN 1 TOQUE -->
+        ${selectedItemObj ? `
+          <div class="sticky top-16 z-30 bg-[#181e25]/95 backdrop-blur-md border border-[#00e054]/60 rounded-2xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 shadow-2xl">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img src="${selectedItemObj.coverData}" class="w-7 h-9 object-cover rounded border border-white/20 flex-shrink-0" />
+              <span class="text-xs font-bold text-white truncate max-w-[160px]">${esc(selectedItemObj.title || 'Imagen')}</span>
+            </div>
             <div class="flex flex-wrap items-center gap-1.5">
-              <button onclick="window._mvRenameSubList()" class="px-2 py-1 rounded-lg bg-[#14181c] hover:bg-[#2c3440] text-[#9ab] hover:text-white border border-[#333d4b]">
-                <i class="fa-solid fa-pen mr-1"></i>Renombrar "${escapeHtml(tier.name)}"
-              </button>
-              ${groups.length > 1 ? `
-                <select onchange="if(this.value) window._mvMoveSubListToGroup(this.value)"
-                        class="bg-[#14181c] text-[#9ab] hover:text-white px-2 py-1 rounded-lg border border-[#333d4b] focus:outline-none">
-                  <option value="">Mover a otra categoría...</option>
-                  ${groups.filter(g => g !== activeGroup).map(g => `<option value="${escapeHtml(g)}">→ ${escapeHtml(g)}</option>`).join('')}
-                </select>
+              ${(tier.rows || []).map(r => `
+                <button onclick="window._mvQuickAssign('${r.id}')" style="background:${r.color}"
+                        class="min-w-[28px] h-7 px-2 rounded-lg text-black font-black text-xs shadow-sm hover:opacity-90 transition-opacity">
+                  ${esc(r.label)}
+                </button>
+              `).join('')}
+              <button onclick="window._mvQuickUnrank()" class="h-7 px-2.5 rounded-lg bg-[#2a333e] hover:bg-[#35404d] text-white text-xs font-semibold">Bandeja</button>
+              ${selectedItemObj.isCustom ? `
+                <button onclick="window._mvOpenDialog('deleteCustomImg', '${selectedItemObj.id}')" title="Eliminar imagen subida"
+                        class="w-7 h-7 rounded-lg bg-red-500/15 hover:bg-red-500/30 text-red-300 text-xs flex items-center justify-center border border-red-500/30">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
               ` : ''}
-              <button onclick="window._mvDeleteSubList()" class="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-300 border border-red-500/25">
-                <i class="fa-solid fa-trash-can mr-1"></i>Borrar sub-lista
+              <button onclick="window._mvClearSelection()" class="w-7 h-7 rounded-lg text-[#9ab] hover:text-white hover:bg-white/[0.06] flex items-center justify-center text-xs">✕</button>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- NIVEL 3: TABLERO DE TIER LIST (LETRAS LIMPIAS + ARRASTRE) -->
+        <div id="tier-board" class="rounded-2xl overflow-hidden border border-white/[0.08] bg-[#101418] divide-y divide-white/[0.07] shadow-xl w-full">
+          ${(tier.rows || []).map(row => {
+            const rowItems = (row.itemIds || []).map(id => getAnyTierItem(id)).filter(Boolean);
+            return `
+              <div data-row-id="${row.id}"
+                   ondragover="window._mvRowDragOver(event, '${row.id}')"
+                   ondragleave="window._mvRowDragLeave(event)"
+                   ondrop="window._mvRowDrop(event, '${row.id}')"
+                   class="flex min-h-[76px] bg-[#161b21] transition-colors">
+                <!-- Bloque de letra limpio y arrastrable -->
+                <div draggable="true"
+                     ondragstart="window._mvRowDragStart(event, '${row.id}')"
+                     ondragend="window._mvRowDragEnd(event)"
+                     onclick="window._mvTapRow('${row.id}')"
+                     title="Arrastra para reordenar esta fila"
+                     style="background-color: ${row.color}"
+                     class="mv-tier-handle w-16 sm:w-24 flex-shrink-0 flex items-center justify-center p-2 text-black font-black text-center text-sm sm:text-lg leading-tight break-words">
+                  <span>${esc(row.label)}</span>
+                </div>
+
+                <!-- Contenedor de imágenes -->
+                <div onclick="window._mvTapRow('${row.id}')"
+                     ondragover="event.preventDefault()"
+                     ondrop="window._mvCoverDropToRow(event, '${row.id}')"
+                     class="flex-1 p-1.5 sm:p-2 flex flex-wrap items-center gap-1.5 min-h-[76px] cursor-pointer hover:bg-white/[0.015] min-w-0">
+                  ${rowItems.map(item => renderThumbHTML(item, sizeClass, ratioClass)).join('')}
+                </div>
+
+                <!-- Botón discreto de configuración de fila -->
+                <div class="w-9 flex-shrink-0 flex items-center justify-center border-l border-white/[0.05] bg-[#13171c]">
+                  <button onclick="window._mvOpenRowConfig('${row.id}')" title="Configurar fila"
+                          class="w-7 h-7 rounded-lg text-[#6e7d8c] hover:text-white hover:bg-white/[0.06] flex items-center justify-center text-xs transition-colors">
+                    <i class="fa-solid fa-sliders"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- NIVEL 4: BANDEJA DE IMÁGENES PROPIAS Y CATÁLOGO -->
+        <div class="bg-[#1b2128] rounded-2xl border border-white/[0.08] overflow-hidden w-full">
+          <div class="px-4 py-3 border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-2.5">
+            <!-- Control segmentado -->
+            <div class="inline-flex bg-[#14181c] p-1 rounded-xl border border-white/[0.06]">
+              <button onclick="window._mvSetTrayTab('custom')"
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                        mvMod.trayTab === 'custom' ? 'bg-[#262f3a] text-white shadow-sm' : 'text-[#8c9baa] hover:text-white'
+                      }">
+                <i class="fa-regular fa-images text-[11px]"></i>
+                <span>Mis imágenes</span>
+                <span class="text-[10px] opacity-70">(${customCountHere})</span>
+              </button>
+              <button onclick="window._mvSetTrayTab('catalog')"
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                        mvMod.trayTab === 'catalog' ? 'bg-[#262f3a] text-white shadow-sm' : 'text-[#8c9baa] hover:text-white'
+                      }">
+                <i class="fa-solid fa-layer-group text-[11px]"></i>
+                <span>Mi catálogo</span>
               </button>
             </div>
 
-            <div class="flex flex-wrap items-center gap-1.5">
-              <!-- Proporción 2:3 vs 1:1 -->
-              <div class="inline-flex bg-[#14181c] p-0.5 rounded-lg border border-[#333d4b]">
-                <button onclick="window._mvSetRatio('poster')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbRatio === 'poster' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">2:3</button>
-                <button onclick="window._mvSetRatio('square')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbRatio === 'square' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">1:1</button>
+            <!-- Botón de subida limpia -->
+            <label class="cursor-pointer h-8 px-3.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white font-semibold text-xs border border-white/10 flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-cloud-arrow-up text-[#40bcf4]"></i>
+              <span>Subir imágenes</span>
+              <input type="file" accept="image/*" multiple onchange="window._mvHandleMultiUpload(event)" class="hidden" />
+            </label>
+          </div>
+
+          <div class="p-3.5 space-y-3">
+            <!-- Filtros compactos -->
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="relative flex-1 min-w-[160px]">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-[#6e7d8c] text-xs pointer-events-none"></i>
+                <input id="mv-tray-search-inp" type="text" value="${esc(mvMod.trayQuery)}"
+                       oninput="window._mvSetTrayQuery(this.value)"
+                       placeholder="Filtrar imágenes en bandeja..."
+                       class="w-full h-8 pl-8 pr-3 rounded-lg bg-[#14181c] border border-white/[0.07] text-white text-xs placeholder:text-[#6e7d8c] focus:outline-none focus:border-white/25" />
               </div>
-              <!-- Densidad -->
-              <div class="inline-flex bg-[#14181c] p-0.5 rounded-lg border border-[#333d4b]">
-                <button onclick="window._mvSetSize('sm')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbSize === 'sm' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">Compacto</button>
-                <button onclick="window._mvSetSize('md')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbSize === 'md' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">Normal</button>
-                <button onclick="window._mvSetSize('lg')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbSize === 'lg' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">Grande</button>
-              </div>
+
+              ${mvMod.trayTab === 'custom' ? `
+                <select onchange="window._mvSetCustomScope(this.value)"
+                        class="h-8 bg-[#14181c] text-[#dce4ec] text-xs px-2.5 rounded-lg border border-white/[0.07] focus:outline-none">
+                  <option value="sublist" ${mvMod.customScope === 'sublist' ? 'selected' : ''}>Solo de "${esc(tier.name)}"</option>
+                  <option value="group" ${mvMod.customScope === 'group' ? 'selected' : ''}>Todas en "${esc(activeGroup)}"</option>
+                </select>
+              ` : `
+                <select onchange="window._mvSetTrayFormat(this.value)"
+                        class="h-8 bg-[#14181c] text-[#dce4ec] text-xs px-2.5 rounded-lg border border-white/[0.07] focus:outline-none">
+                  <option value="all" ${mvMod.trayFormat === 'all' ? 'selected' : ''}>Todos los formatos</option>
+                  ${(typeof FORMATS !== 'undefined' ? FORMATS : []).map(f => `<option value="${f.id}" ${mvMod.trayFormat === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}
+                </select>
+                <select onchange="window._mvSetTrayOrg(this.value)"
+                        class="h-8 bg-[#14181c] text-[#dce4ec] text-xs px-2.5 rounded-lg border border-white/[0.07] focus:outline-none max-w-[180px]">
+                  <option value="all" ${mvMod.trayOrg === 'all' ? 'selected' : ''}>Todas las franquicias</option>
+                  ${(appState.organizers || []).map(o => `<option value="${o.id}" ${mvMod.trayOrg === o.id ? 'selected' : ''}>${esc(o.name)}</option>`).join('')}
+                </select>
+              `}
+            </div>
+
+            <!-- Grid de miniaturas sin clasificar -->
+            <div id="tier-unranked-tray"
+                 ondragover="event.preventDefault()"
+                 ondrop="window._mvCoverDropToTray(event)"
+                 class="min-h-[96px] p-2.5 rounded-xl bg-[#14181c] border border-white/[0.06] flex flex-wrap gap-1.5 items-center w-full">
             </div>
           </div>
         </div>
       </div>
 
-      <!-- BARRA RÁPIDA DE 1 TOQUE AL SELECCIONAR UNA IMAGEN -->
-      ${selectedItemObj ? `
-        <div class="sticky top-16 z-30 bg-[#14181c]/95 backdrop-blur border border-[#00e054] rounded-2xl p-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xl">
-          <div class="flex items-center gap-2 min-w-0">
-            <img src="${selectedItemObj.coverData}" class="w-8 h-10 object-cover rounded border border-white/20 flex-shrink-0" />
-            <span class="text-xs font-bold text-white truncate max-w-[160px]">${escapeHtml(selectedItemObj.title || 'Imagen')}</span>
-          </div>
-          <div class="flex flex-wrap items-center gap-1.5">
-            ${(tier.rows || []).map(r => `
-              <button onclick="window._mvQuickAssign('${r.id}')" style="background:${r.color}"
-                      class="px-2.5 py-1 rounded-lg text-black font-black text-xs shadow hover:opacity-90">
-                ${escapeHtml(r.label)}
-              </button>
-            `).join('')}
-            <button onclick="window._mvQuickUnrank()" class="px-2.5 py-1 rounded-lg bg-[#2c3440] text-white text-xs font-bold">↩ Bandeja</button>
-            ${selectedItemObj.isCustom ? `
-              <button onclick="window._mvDeleteCustomImage('${selectedItemObj.id}')" class="px-2 py-1 rounded-lg bg-red-500/20 text-red-300 text-xs font-bold border border-red-500/40" title="Eliminar imagen subida">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            ` : ''}
-            <button onclick="window._mvClearSelection()" class="px-2 py-1 rounded-lg text-[#9ab] hover:text-white text-xs">✕</button>
-          </div>
-        </div>
-      ` : ''}
+      <!-- MODAL DE CONFIGURACIÓN DE FILA -->
+      ${mvMod.editingRowId ? renderRowConfigModal(tier) : ''}
 
-      <!-- TABLERO DE TIER LIST (LETRAS LIMPIAS Y BARRAS ARRASTRABLES) -->
-      <div id="tier-board" class="rounded-2xl overflow-hidden border border-[#333d4b] bg-[#101418] divide-y divide-[#333d4b] shadow-xl w-full">
-        ${(tier.rows || []).map(row => {
-          const rowItems = (row.itemIds || []).map(id => getAnyTierItem(id)).filter(Boolean);
-          return `
-            <div data-row-id="${row.id}"
-                 ondragover="window._mvRowDragOver(event, '${row.id}')"
-                 ondragleave="window._mvRowDragLeave(event)"
-                 ondrop="window._mvRowDrop(event, '${row.id}')"
-                 class="flex min-h-[78px] bg-[#161b20] transition-colors">
-              <!-- Bloque de letra 100% limpio y arrastrable -->
-              <div draggable="true"
-                   ondragstart="window._mvRowDragStart(event, '${row.id}')"
-                   ondragend="window._mvRowDragEnd(event)"
-                   onclick="window._mvTapRow('${row.id}')"
-                   title="Arrastra para mover esta fila arriba o abajo"
-                   style="background-color: ${row.color}"
-                   class="mv-tier-handle w-16 sm:w-24 flex-shrink-0 flex items-center justify-center p-2 text-black font-black text-center text-sm sm:text-lg leading-tight break-words">
-                <span>${escapeHtml(row.label)}</span>
-              </div>
-
-              <!-- Zona de portadas -->
-              <div onclick="window._mvTapRow('${row.id}')"
-                   ondragover="event.preventDefault()"
-                   ondrop="window._mvCoverDropToRow(event, '${row.id}')"
-                   class="flex-1 p-1.5 sm:p-2 flex flex-wrap items-center gap-1.5 min-h-[78px] cursor-pointer hover:bg-white/[0.02] min-w-0">
-                ${rowItems.map(item => renderThumbHTML(item, sizeClass, ratioClass)).join('')}
-              </div>
-
-              <!-- Botón único y discreto para editar esta fila -->
-              <div class="w-9 flex-shrink-0 flex items-center justify-center border-l border-[#2c3440]/70 bg-[#14181c]/70">
-                <button onclick="window._mvOpenRowConfig('${row.id}')" title="Configurar fila"
-                        class="w-7 h-7 rounded-lg text-[#9ab] hover:text-white hover:bg-[#2c3440] flex items-center justify-center text-xs transition-colors">
-                  <i class="fa-solid fa-gear"></i>
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-
-      <!-- BANDEJA INFERIOR: IMÁGENES SUBIDAS PROPIAS + TU CATÁLOGO -->
-      <div class="bg-[#1f252c] rounded-2xl p-3.5 sm:p-4 border border-[#333d4b] space-y-3 w-full">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <!-- Pestañas de la bandeja -->
-          <div class="inline-flex bg-[#14181c] p-1 rounded-xl border border-[#333d4b]">
-            <button onclick="window._mvSetTrayTab('custom')"
-                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                      mvMod.trayTab === 'custom' ? 'bg-[#2c3440] text-white' : 'text-[#9ab] hover:text-white'
-                    }">
-              <i class="fa-solid fa-images text-[#ff8000]"></i>
-              <span>Imágenes subidas (${customCountHere})</span>
-            </button>
-            <button onclick="window._mvSetTrayTab('catalog')"
-                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-                      mvMod.trayTab === 'catalog' ? 'bg-[#2c3440] text-white' : 'text-[#9ab] hover:text-white'
-                    }">
-              <i class="fa-solid fa-layer-group text-[#00e054]"></i>
-              <span>Mi Catálogo</span>
-            </button>
-          </div>
-
-          <!-- Botón para subir una o muchas imágenes de golpe -->
-          <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-[#40bcf4] hover:opacity-95 text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-            <span>Subir imágenes a "${escapeHtml(tier.name)}"</span>
-            <input type="file" accept="image/*" multiple onchange="window._mvHandleMultiUpload(event)" class="hidden" />
-          </label>
-        </div>
-
-        <!-- Filtros de la bandeja -->
-        <div class="flex flex-wrap items-center gap-2">
-          <input type="text" value="${escapeHtml(mvMod.trayQuery)}"
-                 oninput="window._mvSetTrayQuery(this.value)"
-                 placeholder="🔍 Buscar imagen u obra en la bandeja..."
-                 class="flex-1 min-w-[160px] h-9 px-3 rounded-xl bg-[#14181c] border border-[#333d4b] text-white text-xs focus:outline-none focus:border-[#00e054]" />
-
-          ${mvMod.trayTab === 'custom' ? `
-            <select onchange="window._mvSetCustomScope(this.value)"
-                    class="h-9 bg-[#14181c] text-white text-xs px-2.5 rounded-xl border border-[#333d4b] focus:outline-none">
-              <option value="sublist" ${mvMod.customScope === 'sublist' ? 'selected' : ''}>Solo de "${escapeHtml(tier.name)}"</option>
-              <option value="group" ${mvMod.customScope === 'group' ? 'selected' : ''}>Todas las de "${escapeHtml(activeGroup)}"</option>
-            </select>
-          ` : `
-            <select onchange="window._mvSetTrayFormat(this.value)"
-                    class="h-9 bg-[#14181c] text-white text-xs px-2.5 rounded-xl border border-[#333d4b] focus:outline-none">
-              <option value="all" ${mvMod.trayFormat === 'all' ? 'selected' : ''}>Todos los formatos</option>
-              ${(typeof FORMATS !== 'undefined' ? FORMATS : []).map(f => `<option value="${f.id}" ${mvMod.trayFormat === f.id ? 'selected' : ''}>${escapeHtml(f.name)}</option>`).join('')}
-            </select>
-            <select onchange="window._mvSetTrayOrg(this.value)"
-                    class="h-9 bg-[#14181c] text-white text-xs px-2.5 rounded-xl border border-[#333d4b] focus:outline-none max-w-[180px]">
-              <option value="all" ${mvMod.trayOrg === 'all' ? 'selected' : ''}>Cualquier franquicia</option>
-              ${(appState.organizers || []).map(o => `<option value="${o.id}" ${mvMod.trayOrg === o.id ? 'selected' : ''}>${escapeHtml(o.name)}</option>`).join('')}
-            </select>
-          `}
-        </div>
-
-        <!-- Contenedor de imágenes sin clasificar -->
-        <div id="tier-unranked-tray"
-             ondragover="event.preventDefault()"
-             ondrop="window._mvCoverDropToTray(event)"
-             class="min-h-[104px] p-2.5 rounded-xl bg-[#14181c] border border-[#333d4b] flex flex-wrap gap-1.5 items-center w-full">
-          ${trayItems.length === 0
-            ? `<span class="text-xs text-[#9ab] py-5 mx-auto text-center">
-                ${mvMod.trayTab === 'custom'
-                  ? 'Aún no has subido imágenes aquí. Toca "Subir imágenes" arriba para añadir personajes, portadas o capturas.'
-                  : 'No hay más obras de tu catálogo sin clasificar con este filtro.'}
-               </span>`
-            : trayItems.map(item => renderThumbHTML(item, sizeClass, ratioClass)).join('')}
-        </div>
-      </div>
-
-      <!-- MODAL COMPACTO DE CONFIGURACIÓN DE FILA -->
-      <div id="mv-row-config-modal" class="${mvMod.editingRowId ? '' : 'hidden'} fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
-           onclick="if(event.target===this) window._mvCloseRowConfig()">
-        ${renderRowConfigModalInner(tier)}
-      </div>
+      <!-- MODAL PROPIO PARA CREAR / RENOMBRAR / MOVER / ELIMINAR -->
+      ${mvMod.dialog ? renderCustomDialogModal(groups, activeGroup, tier) : ''}
     `;
+
+    renderTrayGridOnly();
+
+    if (mvMod.dialog) {
+      setTimeout(() => {
+        const inp = document.getElementById('mv-dialog-input');
+        if (inp) { inp.focus(); inp.select(); }
+      }, 25);
+    }
   }
 
   function renderThumbHTML(item, sizeClass, ratioClass) {
@@ -4825,181 +4929,319 @@
       <div draggable="true"
            ondragstart="window._mvCoverDragStart(event, '${item.id}')"
            onclick="window._mvTapCover(event, '${item.id}')"
-           title="${escapeHtml(item.title || '')}"
-           class="${sizeClass} ${ratioClass} rounded-md overflow-hidden border border-white/20 shadow cursor-pointer flex-shrink-0 transition-transform bg-[#1f252c] ${
+           title="${esc(item.title || '')}"
+           class="${sizeClass} ${ratioClass} rounded-md overflow-hidden border border-white/15 shadow cursor-pointer flex-shrink-0 transition-transform bg-[#1f252c] ${
              isSel ? 'tier-selected-cover' : 'hover:scale-105'
            }">
-        <img src="${item.coverData}" alt="${escapeHtml(item.title || '')}" class="w-full h-full object-cover pointer-events-none" />
+        <img src="${item.coverData}" alt="${esc(item.title || '')}" class="w-full h-full object-cover pointer-events-none" />
       </div>
     `;
   }
 
-  function renderRowConfigModalInner(tier) {
-    if (!mvMod.editingRowId) return '';
-    const row = (tier.rows || []).find(r => r.id === mvMod.editingRowId);
+  function renderRowConfigModal(tier) {
+    const rows = tier.rows || [];
+    const idx = rows.findIndex(r => r.id === mvMod.editingRowId);
+    const row = rows[idx];
     if (!row) return '';
+
     return `
-      <div class="bg-[#1f252c] border border-[#333d4b] rounded-2xl max-w-sm w-full p-4 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between border-b border-[#333d4b] pb-2.5">
-          <h3 class="text-sm font-extrabold text-white">Configurar Fila</h3>
-          <button onclick="window._mvCloseRowConfig()" class="text-[#9ab] hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-[11px] font-bold text-[#9ab] mb-1">Texto de la fila</label>
-            <input id="mv-row-label-inp" type="text" value="${escapeHtml(row.label)}"
-                   class="w-full px-3 py-2 rounded-xl bg-[#14181c] border border-[#333d4b] text-white font-bold text-sm focus:outline-none focus:border-[#00e054]" />
+      <div class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+           onclick="if(event.target===this) window._mvCloseRowConfig()">
+        <div class="mv-popover-panel bg-[#1b2128] border border-white/10 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-white">Editar fila</h3>
+            <button onclick="window._mvCloseRowConfig()" class="w-7 h-7 rounded-lg text-[#9ab] hover:text-white hover:bg-white/[0.06] flex items-center justify-center">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
           </div>
-          <div>
-            <label class="block text-[11px] font-bold text-[#9ab] mb-1.5">Color</label>
-            <div class="flex flex-wrap items-center gap-2">
-              ${MV_PRESET_COLORS.map(c => `
-                <button type="button" onclick="window._mvSetRowColor('${row.id}', '${c}')"
-                        style="background:${c}"
-                        class="w-6 h-6 rounded-full border-2 ${row.color.toLowerCase() === c ? 'border-white scale-110' : 'border-transparent'}"></button>
-              `).join('')}
-              <input type="color" value="${row.color}" onchange="window._mvSetRowColor('${row.id}', this.value)"
-                     class="w-7 h-7 rounded bg-transparent border-0 cursor-pointer" title="Color personalizado" />
+
+          <div class="space-y-3.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-[#9ab] mb-1.5">Nombre de la fila</label>
+              <input id="mv-row-label-inp" type="text" value="${esc(row.label)}"
+                     onkeydown="if(event.key==='Enter') window._mvSaveRowLabel('${row.id}')"
+                     class="w-full px-3 py-2 rounded-xl bg-[#14181c] border border-white/10 text-white font-bold text-sm focus:outline-none focus:border-[#00e054]" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-[#9ab] mb-2">Color</label>
+              <div class="flex flex-wrap items-center gap-2">
+                ${MV_PRESET_COLORS.map(c => `
+                  <button type="button" onclick="window._mvSetRowColor('${row.id}', '${c}')"
+                          style="background:${c}"
+                          class="w-6 h-6 rounded-full transition-transform ${row.color.toLowerCase() === c ? 'ring-2 ring-white ring-offset-2 ring-offset-[#1b2128] scale-105' : 'hover:scale-110'}"></button>
+                `).join('')}
+                <label class="w-6 h-6 rounded-full border border-white/25 flex items-center justify-center cursor-pointer overflow-hidden" title="Color personalizado">
+                  <input type="color" value="${row.color}" onchange="window._mvSetRowColor('${row.id}', this.value)" class="opacity-0 w-0 h-0" />
+                  <i class="fa-solid fa-eye-dropper text-[10px] text-white"></i>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-[#9ab] mb-1.5">Posición y acciones</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="window._mvMoveRowPos('${row.id}', -1)" ${idx === 0 ? 'disabled' : ''}
+                        class="py-2 px-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] disabled:opacity-35 text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-arrow-up text-[10px]"></i><span>Subir fila</span>
+                </button>
+                <button onclick="window._mvMoveRowPos('${row.id}', 1)" ${idx === rows.length - 1 ? 'disabled' : ''}
+                        class="py-2 px-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] disabled:opacity-35 text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-arrow-down text-[10px]"></i><span>Bajar fila</span>
+                </button>
+                <button onclick="window._mvClearSingleRow('${row.id}')"
+                        class="py-2 px-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-[#dce4ec] text-xs font-semibold">
+                  Vaciar fila
+                </button>
+                <button onclick="window._mvDeleteSingleRow('${row.id}')" ${rows.length <= 1 ? 'disabled' : ''}
+                        class="py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 disabled:opacity-35 text-red-300 text-xs font-semibold border border-red-500/20">
+                  Eliminar fila
+                </button>
+              </div>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <button onclick="window._mvClearSingleRow('${row.id}')" class="py-2 px-3 rounded-xl bg-[#2c3440] hover:bg-[#333d4b] text-white text-xs font-semibold">
-              Vaciar fila
-            </button>
-            <button onclick="window._mvDeleteSingleRow('${row.id}')" class="py-2 px-3 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-300 text-xs font-semibold border border-red-500/30">
-              Eliminar fila
-            </button>
+
+          <div class="flex justify-end gap-2 pt-3 border-t border-white/[0.07]">
+            <button onclick="window._mvCloseRowConfig()" class="px-3.5 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white text-xs font-semibold">Cancelar</button>
+            <button onclick="window._mvSaveRowLabel('${row.id}')" class="px-4 py-2 rounded-xl bg-[#00e054] hover:bg-[#00c84b] text-black font-bold text-xs">Guardar</button>
           </div>
         </div>
-        <div class="flex justify-end gap-2 pt-2 border-t border-[#333d4b]">
-          <button onclick="window._mvCloseRowConfig()" class="px-3.5 py-1.5 rounded-xl bg-[#2c3440] text-white text-xs font-semibold">Cerrar</button>
-          <button onclick="window._mvSaveRowLabel('${row.id}')" class="px-4 py-1.5 rounded-xl bg-[#00e054] text-black font-bold text-xs">Guardar</button>
+      </div>
+    `;
+  }
+
+  function renderCustomDialogModal(groups, activeGroup, tier) {
+    const d = mvMod.dialog;
+    if (!d) return '';
+    let title = '', subtitle = '', bodyHtml = '', confirmLabel = 'Guardar', danger = false;
+
+    if (d.type === 'createGroup') {
+      title = 'Nueva categoría';
+      subtitle = 'Agrupa varias Tier Lists bajo un mismo tema o franquicia.';
+      confirmLabel = 'Crear categoría';
+      bodyHtml = `
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-[#9ab] mb-1.5">Nombre de la categoría</label>
+            <input id="mv-dialog-input" type="text" placeholder="Ej: Fire Emblem, Zelda, Anime..."
+                   onkeydown="if(event.key==='Enter') window._mvSubmitDialog()"
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-white/10 text-white text-sm font-semibold focus:outline-none focus:border-[#00e054]" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-[#9ab] mb-1.5">Primera sub-lista</label>
+            <input id="mv-dialog-input-2" type="text" value="Juegos" placeholder="Ej: Juegos, Personajes, Libros..."
+                   onkeydown="if(event.key==='Enter') window._mvSubmitDialog()"
+                   class="w-full px-3.5 py-2 rounded-xl bg-[#14181c] border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#00e054]" />
+          </div>
+        </div>
+      `;
+    } else if (d.type === 'renameGroup') {
+      title = 'Renombrar categoría';
+      bodyHtml = `
+        <input id="mv-dialog-input" type="text" value="${esc(activeGroup)}"
+               onkeydown="if(event.key==='Enter') window._mvSubmitDialog()"
+               class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-white/10 text-white text-sm font-semibold focus:outline-none focus:border-[#00e054]" />
+      `;
+    } else if (d.type === 'deleteGroup') {
+      title = `¿Eliminar "${activeGroup}"?`;
+      subtitle = 'Se eliminarán todas sus sub-listas y las imágenes subidas exclusivas de esta categoría. Tu Estantería no se verá afectada.';
+      confirmLabel = 'Eliminar categoría';
+      danger = true;
+    } else if (d.type === 'createSub') {
+      title = `Nueva sub-lista en ${activeGroup}`;
+      subtitle = 'Crea una pestaña independiente dentro de esta misma categoría.';
+      confirmLabel = 'Crear sub-lista';
+      bodyHtml = `
+        <input id="mv-dialog-input" type="text" placeholder="Ej: Personajes, Libros, Jefes, Banda sonora..."
+               onkeydown="if(event.key==='Enter') window._mvSubmitDialog()"
+               class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-white/10 text-white text-sm font-semibold focus:outline-none focus:border-[#00e054]" />
+      `;
+    } else if (d.type === 'renameSub') {
+      title = 'Renombrar sub-lista';
+      bodyHtml = `
+        <input id="mv-dialog-input" type="text" value="${esc(tier.name)}"
+               onkeydown="if(event.key==='Enter') window._mvSubmitDialog()"
+               class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-white/10 text-white text-sm font-semibold focus:outline-none focus:border-[#00e054]" />
+      `;
+    } else if (d.type === 'moveSub') {
+      title = `Mover "${tier.name}"`;
+      subtitle = 'Elige a qué categoría quieres trasladar esta sub-lista y sus imágenes.';
+      confirmLabel = 'Mover sub-lista';
+      const otherGroups = groups.filter(g => g !== activeGroup);
+      bodyHtml = `
+        <select id="mv-dialog-select" class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-white/10 text-white text-sm font-semibold focus:outline-none focus:border-[#00e054]">
+          ${otherGroups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('')}
+        </select>
+      `;
+    } else if (d.type === 'clearSub') {
+      title = '¿Vaciar el tablero?';
+      subtitle = 'Todas las imágenes clasificadas en esta sub-lista volverán a la bandeja inferior.';
+      confirmLabel = 'Vaciar tablero';
+    } else if (d.type === 'deleteSub') {
+      const onlyOne = getListsInGroup(activeGroup).length <= 1;
+      title = onlyOne ? '¿Vaciar la única sub-lista?' : `¿Eliminar "${tier.name}"?`;
+      subtitle = onlyOne
+        ? 'Como es la única sub-lista de esta categoría, se vaciarán sus filas.'
+        : 'Se borrará esta sub-lista y las imágenes subidas únicamente en ella.';
+      confirmLabel = onlyOne ? 'Vaciar' : 'Eliminar';
+      danger = !onlyOne;
+    } else if (d.type === 'deleteCustomImg') {
+      title = '¿Eliminar imagen subida?';
+      subtitle = 'Se quitará de la bandeja y de cualquier fila donde esté colocada.';
+      confirmLabel = 'Eliminar imagen';
+      danger = true;
+    }
+
+    return `
+      <div class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+           onclick="if(event.target===this) window._mvCloseDialog()">
+        <div class="mv-popover-panel bg-[#1b2128] border border-white/10 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
+          <div class="space-y-1">
+            <h3 class="text-base font-extrabold text-white">${esc(title)}</h3>
+            ${subtitle ? `<p class="text-xs text-[#9ab] leading-relaxed">${esc(subtitle)}</p>` : ''}
+          </div>
+          ${bodyHtml}
+          <div class="flex justify-end gap-2 pt-2 border-t border-white/[0.07]">
+            <button onclick="window._mvCloseDialog()" class="px-3.5 py-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white text-xs font-semibold">Cancelar</button>
+            <button onclick="window._mvSubmitDialog()"
+                    class="px-4 py-2 rounded-xl text-xs font-bold ${
+                      danger ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-[#00e054] hover:bg-[#00c84b] text-black'
+                    }">${esc(confirmLabel)}</button>
+          </div>
         </div>
       </div>
     `;
   }
 
   /* -------------------------------------------------------------------
-   * 4. ACCIONES DE GRUPOS, SUB-LISTAS, SUBIDA Y ARRASTRE
+   * 4. CONTROLADORES DE INTERACCIÓN
    * ------------------------------------------------------------------- */
-  window._mvSelectGroup = function (groupName) {
-    mvMod.activeGroup = groupName;
+  window._mvToggleMenu = function (e, menuName) {
+    e.stopPropagation();
+    mvMod.openMenu = mvMod.openMenu === menuName ? null : menuName;
+    renderGroupedTierListUI();
+  };
+
+  window._mvOpenDialog = function (type, payload = null) {
+    mvMod.openMenu = null;
+    mvMod.dialog = { type, payload };
+    renderGroupedTierListUI();
+  };
+
+  window._mvCloseDialog = function () {
+    mvMod.dialog = null;
+    renderGroupedTierListUI();
+  };
+
+  window._mvSubmitDialog = async function () {
+    const d = mvMod.dialog;
+    if (!d) return;
+    ensureModData();
+    const tier = getActiveSubTierList();
+    const inp1 = document.getElementById('mv-dialog-input');
+    const inp2 = document.getElementById('mv-dialog-input-2');
+    const sel = document.getElementById('mv-dialog-select');
+
+    if (d.type === 'createGroup') {
+      const name = (inp1?.value || '').trim();
+      if (!name) return;
+      const firstSub = (inp2?.value || '').trim() || 'Principal';
+      if (!appState.settings.tierGroups.includes(name)) {
+        appState.settings.tierGroups.push(name);
+      }
+      const newTier = { id: 'tier_' + Date.now(), name: firstSub, group: name, rows: makeDefaultRows() };
+      appState.tierLists.push(newTier);
+      mvMod.activeGroup = name;
+      try { currentTierListId = newTier.id; } catch (e) {}
+      toast(`Categoría "${name}" creada`);
+    } else if (d.type === 'renameGroup') {
+      const next = (inp1?.value || '').trim();
+      const old = mvMod.activeGroup;
+      if (next && next !== old) {
+        appState.settings.tierGroups = [...new Set(appState.settings.tierGroups.map(g => g === old ? next : g))];
+        appState.tierLists.forEach(t => { if (t.group === old) t.group = next; });
+        appState.settings.tierCustomImages.forEach(img => { if (img.group === old) img.group = next; });
+        mvMod.activeGroup = next;
+        toast(`Renombrada a "${next}"`);
+      }
+    } else if (d.type === 'deleteGroup') {
+      if (appState.settings.tierGroups.length > 1) {
+        const g = mvMod.activeGroup;
+        appState.tierLists = appState.tierLists.filter(t => t.group !== g);
+        appState.settings.tierCustomImages = appState.settings.tierCustomImages.filter(i => i.group !== g);
+        appState.settings.tierGroups = appState.settings.tierGroups.filter(x => x !== g);
+        mvMod.activeGroup = appState.settings.tierGroups[0];
+        const first = getListsInGroup(mvMod.activeGroup)[0];
+        if (first) { try { currentTierListId = first.id; } catch (e) {} }
+        toast(`Categoría "${g}" eliminada`, 'info');
+      }
+    } else if (d.type === 'createSub') {
+      const name = (inp1?.value || '').trim();
+      if (!name) return;
+      const newTier = { id: 'tier_' + Date.now(), name, group: mvMod.activeGroup, rows: makeDefaultRows() };
+      appState.tierLists.push(newTier);
+      try { currentTierListId = newTier.id; } catch (e) {}
+      toast(`Sub-lista "${name}" creada`);
+    } else if (d.type === 'renameSub') {
+      const next = (inp1?.value || '').trim();
+      if (next) {
+        tier.name = next;
+        toast(`Renombrada a "${next}"`);
+      }
+    } else if (d.type === 'moveSub') {
+      const targetGroup = sel?.value;
+      if (targetGroup) {
+        tier.group = targetGroup;
+        appState.settings.tierCustomImages.forEach(img => {
+          if (img.tierListId === tier.id) img.group = targetGroup;
+        });
+        mvMod.activeGroup = targetGroup;
+        toast(`Movida a "${targetGroup}"`);
+      }
+    } else if (d.type === 'clearSub') {
+      tier.rows.forEach(r => r.itemIds = []);
+      mvMod.selectedCoverId = null;
+      toast('Tablero vaciado', 'info');
+    } else if (d.type === 'deleteSub') {
+      const groupLists = getListsInGroup(mvMod.activeGroup);
+      if (groupLists.length <= 1) {
+        tier.rows.forEach(r => r.itemIds = []);
+      } else {
+        appState.tierLists = appState.tierLists.filter(t => t.id !== tier.id);
+        appState.settings.tierCustomImages = appState.settings.tierCustomImages.filter(i => i.tierListId !== tier.id);
+      }
+      toast('Sub-lista eliminada', 'info');
+    } else if (d.type === 'deleteCustomImg' && d.payload) {
+      const imgId = d.payload;
+      appState.settings.tierCustomImages = appState.settings.tierCustomImages.filter(i => i.id !== imgId);
+      appState.tierLists.forEach(t => t.rows.forEach(r => {
+        r.itemIds = (r.itemIds || []).filter(id => id !== imgId);
+      }));
+      if (mvMod.selectedCoverId === imgId) mvMod.selectedCoverId = null;
+      toast('Imagen eliminada', 'info');
+    }
+
+    mvMod.dialog = null;
+    await persist();
+    renderGroupedTierListUI();
+  };
+
+  window._mvSelectGroupByIdx = function (idx) {
+    ensureModData();
+    const g = appState.settings.tierGroups[idx];
+    if (!g) return;
+    mvMod.activeGroup = g;
     mvMod.selectedCoverId = null;
-    const lists = getListsInGroup(groupName);
+    mvMod.openMenu = null;
+    const lists = getListsInGroup(g);
     if (lists[0]) { try { currentTierListId = lists[0].id; } catch (e) {} }
     renderGroupedTierListUI();
-  };
-
-  window._mvCreateGroup = async function () {
-    const name = prompt('Nombre de la nueva categoría (ej: Fire Emblem, Zelda, Anime):');
-    if (!name || !name.trim()) return;
-    const clean = name.trim();
-    ensureModData();
-    if (!appState.settings.tierGroups.includes(clean)) {
-      appState.settings.tierGroups.push(clean);
-    }
-    const firstSub = prompt(`¿Cómo llamar a la primera sub-lista dentro de "${clean}"?`, 'Juegos') || 'Principal';
-    const newTier = {
-      id: 'tier_' + Date.now(),
-      name: firstSub.trim() || 'Principal',
-      group: clean,
-      rows: makeDefaultRows()
-    };
-    appState.tierLists.push(newTier);
-    mvMod.activeGroup = clean;
-    try { currentTierListId = newTier.id; } catch (e) {}
-    await saveStateToDB();
-    renderGroupedTierListUI();
-    showToast(`Categoría "${clean}" creada`, 'success');
-  };
-
-  window._mvRenameGroup = async function () {
-    const oldName = mvMod.activeGroup;
-    const next = prompt('Nuevo nombre para esta categoría:', oldName);
-    if (!next || !next.trim() || next.trim() === oldName) return;
-    const clean = next.trim();
-    ensureModData();
-    appState.settings.tierGroups = appState.settings.tierGroups.map(g => g === oldName ? clean : g);
-    appState.settings.tierGroups = [...new Set(appState.settings.tierGroups)];
-    appState.tierLists.forEach(t => { if (t.group === oldName) t.group = clean; });
-    appState.settings.tierCustomImages.forEach(img => { if (img.group === oldName) img.group = clean; });
-    mvMod.activeGroup = clean;
-    await saveStateToDB();
-    renderGroupedTierListUI();
-    showToast(`Categoría renombrada a "${clean}"`, 'success');
-  };
-
-  window._mvDeleteGroup = async function () {
-    ensureModData();
-    if (appState.settings.tierGroups.length <= 1) return;
-    const g = mvMod.activeGroup;
-    if (!confirm(`¿Eliminar la categoría "${g}" y todas sus sub-listas?`)) return;
-    appState.tierLists = appState.tierLists.filter(t => t.group !== g);
-    appState.settings.tierCustomImages = appState.settings.tierCustomImages.filter(i => i.group !== g);
-    appState.settings.tierGroups = appState.settings.tierGroups.filter(x => x !== g);
-    mvMod.activeGroup = appState.settings.tierGroups[0];
-    const first = getListsInGroup(mvMod.activeGroup)[0];
-    if (first) { try { currentTierListId = first.id; } catch (e) {} }
-    await saveStateToDB();
-    renderGroupedTierListUI();
-    showToast(`Categoría "${g}" eliminada`, 'info');
   };
 
   window._mvSelectSubList = function (id) {
     try { currentTierListId = id; } catch (e) {}
     mvMod.selectedCoverId = null;
-    renderGroupedTierListUI();
-  };
-
-  window._mvCreateSubList = async function () {
-    const name = prompt(`Nueva sub-lista dentro de "${mvMod.activeGroup}" (ej: Personajes, Libros, Jefes):`);
-    if (!name || !name.trim()) return;
-    const newTier = {
-      id: 'tier_' + Date.now(),
-      name: name.trim(),
-      group: mvMod.activeGroup,
-      rows: makeDefaultRows()
-    };
-    appState.tierLists.push(newTier);
-    try { currentTierListId = newTier.id; } catch (e) {}
-    await saveStateToDB();
-    renderGroupedTierListUI();
-    showToast(`Sub-lista "${newTier.name}" creada en ${mvMod.activeGroup}`, 'success');
-  };
-
-  window._mvRenameSubList = async function () {
-    const tier = getActiveSubTierList();
-    const next = prompt('Nuevo nombre para esta sub-lista:', tier.name);
-    if (!next || !next.trim()) return;
-    tier.name = next.trim();
-    await saveStateToDB();
-    renderGroupedTierListUI();
-  };
-
-  window._mvMoveSubListToGroup = async function (targetGroup) {
-    const tier = getActiveSubTierList();
-    tier.group = targetGroup;
-    (appState.settings.tierCustomImages || []).forEach(img => {
-      if (img.tierListId === tier.id) img.group = targetGroup;
-    });
-    mvMod.activeGroup = targetGroup;
-    await saveStateToDB();
-    renderGroupedTierListUI();
-    showToast(`"${tier.name}" movida a ${targetGroup}`, 'success');
-  };
-
-  window._mvDeleteSubList = async function () {
-    const tier = getActiveSubTierList();
-    const groupLists = getListsInGroup(mvMod.activeGroup);
-    if (groupLists.length <= 1) {
-      if (!confirm('Es la única sub-lista de esta categoría. ¿Quieres vaciarla?')) return;
-      tier.rows.forEach(r => r.itemIds = []);
-    } else {
-      if (!confirm(`¿Eliminar la sub-lista "${tier.name}"?`)) return;
-      appState.tierLists = appState.tierLists.filter(t => t.id !== tier.id);
-      appState.settings.tierCustomImages = appState.settings.tierCustomImages.filter(i => i.tierListId !== tier.id);
-    }
-    await saveStateToDB();
+    mvMod.openMenu = null;
     renderGroupedTierListUI();
   };
 
@@ -5008,7 +5250,7 @@
     if (!files.length) return;
     ensureModData();
     const tier = getActiveSubTierList();
-    showToast(`Procesando ${files.length} imagen(es)...`, 'info');
+    toast(`Procesando ${files.length} imagen(es)...`, 'info');
 
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
@@ -5023,23 +5265,12 @@
       });
     }
     mvMod.trayTab = 'custom';
-    await saveStateToDB();
+    await persist();
     renderGroupedTierListUI();
-    showToast(`${files.length} imagen(es) guardadas offline`, 'success');
+    toast(`${files.length} imagen(es) guardadas offline`);
   };
 
-  window._mvDeleteCustomImage = async function (imgId) {
-    if (!confirm('¿Eliminar esta imagen subida?')) return;
-    appState.settings.tierCustomImages = (appState.settings.tierCustomImages || []).filter(i => i.id !== imgId);
-    appState.tierLists.forEach(t => t.rows.forEach(r => {
-      r.itemIds = (r.itemIds || []).filter(id => id !== imgId);
-    }));
-    if (mvMod.selectedCoverId === imgId) mvMod.selectedCoverId = null;
-    await saveStateToDB();
-    renderGroupedTierListUI();
-  };
-
-  // Drag & Drop de FILAS completas
+  // Drag & Drop de FILAS
   window._mvRowDragStart = function (e, rowId) {
     mvMod.draggedRowId = rowId;
     mvMod.draggedCoverId = null;
@@ -5057,9 +5288,7 @@
     e.preventDefault();
     e.currentTarget.classList.add('mv-tier-row-over');
   };
-  window._mvRowDragLeave = function (e) {
-    e.currentTarget.classList.remove('mv-tier-row-over');
-  };
+  window._mvRowDragLeave = function (e) { e.currentTarget.classList.remove('mv-tier-row-over'); };
   window._mvRowDrop = async function (e, targetRowId) {
     if (!mvMod.draggedRowId || mvMod.draggedRowId === targetRowId) return;
     e.preventDefault();
@@ -5069,13 +5298,13 @@
     if (fromIdx > -1 && toIdx > -1) {
       const [moved] = tier.rows.splice(fromIdx, 1);
       tier.rows.splice(toIdx, 0, moved);
-      await saveStateToDB();
+      await persist();
     }
     mvMod.draggedRowId = null;
     renderGroupedTierListUI();
   };
 
-  // Drag & Drop y Toque de PORTADAS / IMÁGENES
+  // Drag & Drop y toque de PORTADAS
   window._mvCoverDragStart = function (e, itemId) {
     e.stopPropagation();
     mvMod.draggedCoverId = itemId;
@@ -5124,10 +5353,7 @@
     mvMod.selectedCoverId = null;
     renderGroupedTierListUI();
   };
-  window._mvClearSelection = function () {
-    mvMod.selectedCoverId = null;
-    renderGroupedTierListUI();
-  };
+  window._mvClearSelection = function () { mvMod.selectedCoverId = null; renderGroupedTierListUI(); };
 
   async function moveTierItem(itemId, targetRowId) {
     const tier = getActiveSubTierList();
@@ -5136,10 +5362,10 @@
       const target = tier.rows.find(r => r.id === targetRowId);
       if (target) target.itemIds.push(itemId);
     }
-    await saveStateToDB();
+    await persist();
   }
 
-  // Configuración de filas y controles de bandeja
+  // Configuración de filas
   window._mvAddTierRow = async function () {
     const tier = getActiveSubTierList();
     tier.rows.push({
@@ -5148,17 +5374,10 @@
       color: MV_PRESET_COLORS[tier.rows.length % MV_PRESET_COLORS.length],
       itemIds: []
     });
-    await saveStateToDB();
+    await persist();
     renderGroupedTierListUI();
   };
-  window._mvClearSubList = async function () {
-    const tier = getActiveSubTierList();
-    tier.rows.forEach(r => r.itemIds = []);
-    mvMod.selectedCoverId = null;
-    await saveStateToDB();
-    renderGroupedTierListUI();
-  };
-  window._mvOpenRowConfig = function (rowId) { mvMod.editingRowId = rowId; renderGroupedTierListUI(); };
+  window._mvOpenRowConfig = function (rowId) { mvMod.openMenu = null; mvMod.editingRowId = rowId; renderGroupedTierListUI(); };
   window._mvCloseRowConfig = function () { mvMod.editingRowId = null; renderGroupedTierListUI(); };
   window._mvSaveRowLabel = async function (rowId) {
     const tier = getActiveSubTierList();
@@ -5166,14 +5385,24 @@
     const inp = document.getElementById('mv-row-label-inp');
     if (row && inp && inp.value.trim()) row.label = inp.value.trim();
     mvMod.editingRowId = null;
-    await saveStateToDB();
+    await persist();
     renderGroupedTierListUI();
   };
   window._mvSetRowColor = async function (rowId, color) {
     const tier = getActiveSubTierList();
     const row = tier.rows.find(r => r.id === rowId);
     if (row) row.color = color;
-    await saveStateToDB();
+    await persist();
+    renderGroupedTierListUI();
+  };
+  window._mvMoveRowPos = async function (rowId, delta) {
+    const tier = getActiveSubTierList();
+    const idx = tier.rows.findIndex(r => r.id === rowId);
+    const target = idx + delta;
+    if (idx < 0 || target < 0 || target >= tier.rows.length) return;
+    const [moved] = tier.rows.splice(idx, 1);
+    tier.rows.splice(target, 0, moved);
+    await persist();
     renderGroupedTierListUI();
   };
   window._mvClearSingleRow = async function (rowId) {
@@ -5181,7 +5410,7 @@
     const row = tier.rows.find(r => r.id === rowId);
     if (row) row.itemIds = [];
     mvMod.editingRowId = null;
-    await saveStateToDB();
+    await persist();
     renderGroupedTierListUI();
   };
   window._mvDeleteSingleRow = async function (rowId) {
@@ -5189,37 +5418,35 @@
     if (tier.rows.length <= 1) return;
     tier.rows = tier.rows.filter(r => r.id !== rowId);
     mvMod.editingRowId = null;
-    await saveStateToDB();
+    await persist();
     renderGroupedTierListUI();
   };
 
+  // Controles de bandeja (búsqueda sin perder el foco)
   window._mvSetTrayTab = function (t) { mvMod.trayTab = t; renderGroupedTierListUI(); };
   window._mvSetCustomScope = function (s) { mvMod.customScope = s; renderGroupedTierListUI(); };
-  window._mvSetTrayFormat = function (f) { mvMod.trayFormat = f; renderGroupedTierListUI(); };
-  window._mvSetTrayOrg = function (o) { mvMod.trayOrg = o; renderGroupedTierListUI(); };
-  window._mvSetTrayQuery = function (q) { mvMod.trayQuery = q; renderGroupedTierListUI(); };
+  window._mvSetTrayFormat = function (f) { mvMod.trayFormat = f; renderTrayGridOnly(); };
+  window._mvSetTrayOrg = function (o) { mvMod.trayOrg = o; renderTrayGridOnly(); };
+  window._mvSetTrayQuery = function (q) { mvMod.trayQuery = q; renderTrayGridOnly(); };
   window._mvSetSize = function (s) { mvMod.thumbSize = s; renderGroupedTierListUI(); };
   window._mvSetRatio = function (r) { mvMod.thumbRatio = r; renderGroupedTierListUI(); };
 
-  // Exportación PNG multilínea (soporta catálogo + imágenes subidas)
+  // Exportación PNG multilínea
   window._mvExportTierPNG = async function () {
     const tier = getActiveSubTierList();
-    showToast('Generando imagen PNG...', 'info');
+    toast('Generando imagen PNG...', 'info');
 
     const isSquare = mvMod.thumbRatio === 'square';
     const cardW = isSquare ? 88 : 76;
     const cardH = isSquare ? 88 : 114;
-    const gap = 8;
-    const pad = 10;
-    const labelW = 120;
+    const gap = 8, pad = 10, labelW = 120;
     const perLine = isSquare ? 12 : 14;
     const canvasW = labelW + pad * 2 + perLine * (cardW + gap);
     const headerH = 60;
 
     const rowHeights = tier.rows.map(r => {
       const count = (r.itemIds || []).filter(id => getAnyTierItem(id)).length;
-      const lines = Math.max(1, Math.ceil(count / perLine));
-      return lines * (cardH + gap) + pad * 2;
+      return Math.max(1, Math.ceil(count / perLine)) * (cardH + gap) + pad * 2;
     });
     const totalH = headerH + rowHeights.reduce((a, b) => a + b, 0);
 
@@ -5230,7 +5457,6 @@
 
     ctx.fillStyle = '#14181c';
     ctx.fillRect(0, 0, canvasW, totalH);
-
     ctx.fillStyle = '#ffffff';
     ctx.font = '800 24px Inter, sans-serif';
     ctx.textAlign = 'left';
@@ -5241,7 +5467,6 @@
     for (let i = 0; i < tier.rows.length; i++) {
       const row = tier.rows[i];
       const rh = rowHeights[i];
-
       ctx.fillStyle = '#1f252c';
       ctx.fillRect(labelW, y, canvasW - labelW, rh - 2);
       ctx.fillStyle = row.color;
@@ -5255,20 +5480,15 @@
 
       const items = (row.itemIds || []).map(id => getAnyTierItem(id)).filter(Boolean);
       for (let j = 0; j < items.length; j++) {
-        const col = j % perLine;
-        const line = Math.floor(j / perLine);
-        const x = labelW + pad + col * (cardW + gap);
-        const iy = y + pad + line * (cardH + gap);
+        const x = labelW + pad + (j % perLine) * (cardW + gap);
+        const iy = y + pad + Math.floor(j / perLine) * (cardH + gap);
         await new Promise(resolve => {
           const img = new Image();
           img.crossOrigin = 'anonymous';
           img.onload = () => {
             const scale = Math.max(cardW / img.width, cardH / img.height);
-            const sw = cardW / scale;
-            const sh = cardH / scale;
-            const sx = (img.width - sw) / 2;
-            const sy = (img.height - sh) / 2;
-            ctx.drawImage(img, sx, sy, sw, sh, x, iy, cardW, cardH);
+            const sw = cardW / scale, sh = cardH / scale;
+            ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, iy, cardW, cardH);
             resolve();
           };
           img.onerror = () => resolve();
@@ -5282,15 +5502,29 @@
     link.download = `${mvMod.activeGroup}_${tier.name}`.toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
-    showToast('Tier List descargada en PNG', 'success');
+    toast('Tier List descargada en PNG');
   };
 
-  // Reemplazar renderTierListView para usar el nuevo sistema agrupado
+  // Cerrar menús y modales al hacer clic fuera o presionar Escape
+  document.addEventListener('click', (e) => {
+    if (mvMod.openMenu && !e.target.closest('.mv-popover-wrap')) {
+      mvMod.openMenu = null;
+      renderGroupedTierListUI();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && (mvMod.openMenu || mvMod.dialog || mvMod.editingRowId)) {
+      mvMod.openMenu = null;
+      mvMod.dialog = null;
+      mvMod.editingRowId = null;
+      renderGroupedTierListUI();
+    }
+  });
+
   window.renderTierListView = renderGroupedTierListUI;
   window.populateTierOrganizerFilter = function () {};
   window.exportTierListAsImage = window._mvExportTierPNG;
 
-  // Asegurar inicialización limpia al cargar la app
   window.addEventListener('load', () => {
     setTimeout(() => {
       ensureModData();
