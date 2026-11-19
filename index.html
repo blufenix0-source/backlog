@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="MediaVault" />
   <title>MediaVault — Backlog &amp; Tier Lists</title>
 
-  <!-- Manifiesto PWA y Service Worker para instalación nativa en celular -->
+  <!-- Manifiesto PWA y registro de Service Worker para uso offline en GitHub Pages -->
   <link rel="manifest" href="./manifest.json" />
   <script>
     if ('serviceWorker' in navigator) {
@@ -23,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <!-- FontAwesome 6.5.1 -->
+  <!-- FontAwesome 6.5.1 CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
   <script>
@@ -54,7 +54,9 @@
   </script>
 
   <style>
-    /* Centrado estricto y cero scroll horizontal */
+    /* ============================================================
+     * BASE GLOBAL: CENTRADO ESTRICTO Y CERO SCROLL HORIZONTAL
+     * ============================================================ */
     *, *::before, *::after {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
@@ -71,7 +73,7 @@
       font-family: 'Inter', system-ui, sans-serif;
     }
 
-    /* Scrollbars sutiles */
+    /* Scrollbars discretos */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -87,7 +89,7 @@
       background: #40bcf4;
     }
 
-    /* Cuadrícula estricta de 3 por fila para Organizadores y Franquicias */
+    /* Cuadrícula estricta de 3 columnas para Franquicias y Sagas */
     .organizers-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -96,16 +98,16 @@
     }
     @media (min-width: 640px) {
       .organizers-grid-3 {
-        gap: 0.85rem;
+        gap: 0.9rem;
       }
     }
 
     /* ============================================================
-     * ABANICO DE 3 PORTADAS (FIX Z-INDEX)
-     * - [0] (más reciente): CENTRO y AL FRENTE (z-index: 20)
-     * - [1] (2ª más reciente): IZQUIERDA -10deg (z-index: 10)
-     * - [2] (3ª más reciente): DERECHA +10deg (z-index: 10)
-     * - Siluetas vacías siempre con z-index: 0 (nunca tapan portadas)
+     * ABANICO DE 3 PORTADAS CON Z-INDEX CORREGIDO
+     * - Más reciente: CENTRO y AL FRENTE (z-index: 30)
+     * - 2ª más reciente: IZQUIERDA -10deg (z-index: 20)
+     * - 3ª más reciente: DERECHA +10deg (z-index: 15)
+     * - Siluetas vacías: SIEMPRE z-index: 1 (nunca tapan portadas)
      * ============================================================ */
     .fan-stack {
       position: relative;
@@ -129,7 +131,7 @@
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.22);
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.65);
-      transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
       background: #2c3440;
     }
     @media (min-width: 640px) {
@@ -161,10 +163,10 @@
       .folder-card:hover .fan-pos-right { transform: translateX(40px) translateY(4px) rotate(13deg); }
     }
 
-    /* Mini abanico compacto para tarjetas de Franquicias / Organizadores (3 columnas) */
+    /* Mini abanico compacto para tarjetas en filas de 3 (Franquicias) */
     .mini-stack-3col {
       position: relative;
-      height: 66px;
+      height: 68px;
       width: 100%;
       display: flex;
       align-items: center;
@@ -172,13 +174,13 @@
     }
     @media (min-width: 640px) {
       .mini-stack-3col {
-        height: 88px;
+        height: 92px;
       }
     }
     .mini-stack-card {
       position: absolute;
-      width: 38px;
-      height: 56px;
+      width: 40px;
+      height: 60px;
       border-radius: 5px;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -188,8 +190,8 @@
     }
     @media (min-width: 640px) {
       .mini-stack-card {
-        width: 52px;
-        height: 76px;
+        width: 54px;
+        height: 80px;
       }
     }
     .mini-stack-card.is-placeholder {
@@ -202,16 +204,16 @@
     .mini-pos-right  { transform: translateX(16px) translateY(3px) rotate(10deg); }
 
     @media (min-width: 640px) {
-      .mini-pos-left  { transform: translateX(-24px) translateY(4px) rotate(-10deg); }
-      .mini-pos-right { transform: translateX(24px) translateY(4px) rotate(10deg); }
+      .mini-pos-left  { transform: translateX(-25px) translateY(4px) rotate(-10deg); }
+      .mini-pos-right { transform: translateX(25px) translateY(4px) rotate(10deg); }
     }
 
     .org-card:hover .mini-pos-center { transform: translateX(0px) translateY(-4px) scale(1.04); }
     .org-card:hover .mini-pos-left   { transform: translateX(-20px) translateY(3px) rotate(-13deg); }
     .org-card:hover .mini-pos-right  { transform: translateX(20px) translateY(3px) rotate(13deg); }
     @media (min-width: 640px) {
-      .org-card:hover .mini-pos-left  { transform: translateX(-30px) translateY(4px) rotate(-13deg); }
-      .org-card:hover .mini-pos-right { transform: translateX(30px) translateY(4px) rotate(13deg); }
+      .org-card:hover .mini-pos-left  { transform: translateX(-31px) translateY(4px) rotate(-13deg); }
+      .org-card:hover .mini-pos-right { transform: translateX(31px) translateY(4px) rotate(13deg); }
     }
 
     /* Barra de progreso Naranja -> Verde */
@@ -226,11 +228,13 @@
     .progress-fill {
       height: 100%;
       border-radius: 9999px;
-      background: linear-gradient(90deg, #ff8000 0%, #00e054 100%);
+      background: linear-gradient(90deg, #ff8000, #00e054);
       transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* Tarjeta estilo Letterboxd + Reordenamiento */
+    /* ============================================================
+     * TARJETAS ESTILO LETTERBOXD + ESTADOS DE REORDENAMIENTO
+     * ============================================================ */
     .lb-poster-item {
       display: flex;
       flex-direction: column;
@@ -258,7 +262,7 @@
       box-shadow: 0 0 0 3px rgba(0, 224, 84, 0.35), 0 16px 28px rgba(0, 0, 0, 0.85);
     }
 
-    /* Portada limpia 2:3 estilo Letterboxd */
+    /* Póster limpio 2:3 */
     .poster-card {
       aspect-ratio: 2 / 3;
       position: relative;
@@ -284,23 +288,30 @@
       pointer-events: none;
     }
 
-    /* Selección de portada en Tier List */
+    /* ============================================================
+     * TIER LISTS: SELECCIÓN, DRAG TARGET Y DENSIDAD
+     * ============================================================ */
     .tier-selected-cover {
       outline: 3px solid #00e054 !important;
-      outline-offset: 2px;
+      outline-offset: 1px;
       transform: scale(1.06);
+      z-index: 10;
+    }
+    .tier-drop-target {
+      outline: 2px dashed #40bcf4 !important;
+      outline-offset: 2px;
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-lb-green selection:text-black">
 
   <!-- ========================================================= -->
-  <!-- BARRA DE NAVEGACIÓN SUPERIOR STICKY (CENTRADA MAX-W-5XL)  -->
+  <!-- 1. BARRA DE NAVEGACIÓN SUPERIOR CON 3 PESTAÑAS            -->
   <!-- ========================================================= -->
   <header class="sticky top-0 z-40 w-full bg-[#14181c]/95 backdrop-blur-md border-b border-lb-border">
-    <div class="max-w-5xl mx-auto w-full px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
-      <!-- Logo MediaVault (3 círculos de color) -->
-      <button onclick="navigateHome()" class="flex items-center gap-2 text-left group focus:outline-none min-w-0">
+    <div class="max-w-[1120px] mx-auto w-full px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <!-- Izquierda: Logo MediaVault -->
+      <button onclick="switchMainTab('catalog', true)" class="flex items-center gap-2 text-left group focus:outline-none min-w-0">
         <div class="flex items-center -space-x-1.5 flex-shrink-0">
           <span class="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-lb-orange inline-block ring-2 ring-[#14181c]"></span>
           <span class="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-lb-green inline-block ring-2 ring-[#14181c]"></span>
@@ -309,25 +320,29 @@
         <span class="font-extrabold tracking-tight text-white text-base sm:text-lg group-hover:text-lb-green transition-colors truncate">MediaVault</span>
       </button>
 
-      <!-- Pestañas Centrales -->
-      <nav class="flex items-center bg-lb-surface p-1 rounded-xl border border-lb-border order-3 sm:order-2 w-full sm:w-auto justify-center">
-        <button id="nav-catalog" onclick="switchMainTab('catalog')" class="flex-1 sm:flex-initial justify-center px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-lb-elevated text-white shadow">
+      <!-- Centro: 3 Pestañas Principales -->
+      <nav class="flex items-center bg-lb-surface p-1 rounded-xl border border-lb-border order-3 md:order-2 w-full md:w-auto justify-center gap-0.5">
+        <button id="nav-catalog" onclick="switchMainTab('catalog', true)" class="flex-1 md:flex-initial justify-center px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-lb-elevated text-white shadow">
           <i class="fa-solid fa-layer-group text-lb-green"></i>
           <span>Estantería</span>
         </button>
-        <button id="nav-tierlists" onclick="switchMainTab('tierlists')" class="flex-1 sm:flex-initial justify-center px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-lb-text hover:text-white">
-          <i class="fa-solid fa-ranking-star text-lb-orange"></i>
+        <button id="nav-franchises" onclick="switchMainTab('franchises', true)" class="flex-1 md:flex-initial justify-center px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-lb-text hover:text-white">
+          <i class="fa-solid fa-folder-tree text-lb-orange"></i>
+          <span>Franquicias</span>
+        </button>
+        <button id="nav-tierlists" onclick="switchMainTab('tierlists', true)" class="flex-1 md:flex-initial justify-center px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-lb-text hover:text-white">
+          <i class="fa-solid fa-ranking-star text-lb-blue"></i>
           <span>Tier Lists</span>
         </button>
       </nav>
 
-      <!-- Acciones Derecha (Sin botón de Claves API: 100% abierto) -->
-      <div class="flex items-center gap-1.5 sm:gap-2 order-2 sm:order-3">
+      <!-- Derecha: Acciones Principales -->
+      <div class="flex items-center gap-1.5 sm:gap-2 order-2 md:order-3">
         <button onclick="openSearchModal()" class="bg-lb-green hover:bg-[#00c84b] text-black font-extrabold text-xs px-3 py-2 rounded-xl shadow-lg shadow-lb-green/10 flex items-center gap-1.5 transition-transform active:scale-95">
           <i class="fa-solid fa-plus"></i>
           <span>Agregar Obra</span>
         </button>
-        <button onclick="openBackupModal()" title="Respaldo Offline y JSON" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border text-xs font-semibold transition-colors flex items-center gap-1.5">
+        <button onclick="openBackupModal()" title="Respaldo Offline y Estadísticas" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border text-xs font-semibold transition-colors flex items-center gap-1.5">
           <i class="fa-solid fa-database text-lb-blue"></i>
           <span class="hidden sm:inline">Respaldo Offline</span>
         </button>
@@ -335,74 +350,105 @@
     </div>
   </header>
 
-  <!-- CONTENEDOR PRINCIPAL CENTRADO (MAX-W-5XL) -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-5 overflow-x-hidden">
+  <!-- CONTENEDOR PRINCIPAL CENTRADO -->
+  <main class="flex-1 max-w-[1120px] w-full mx-auto px-3 sm:px-5 py-5 overflow-x-hidden">
 
-    <!-- ========================================== -->
-    <!-- VISTA 1: ESTANTERÍA DE FORMATOS (INICIO)   -->
-    <!-- ========================================== -->
-    <section id="view-home" class="space-y-6 w-full">
-      <!-- Banner Superior Compacto y Estadísticas Globales -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-lb-surface via-[#232b35] to-lb-surface p-4 rounded-2xl border border-lb-border w-full">
-        <div class="min-w-0">
-          <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">Tu Colección por Formatos</h1>
-          <p class="text-xs text-lb-text mt-0.5">Elige un formato o franquicia para ver tus portadas limpias y tu progreso de completado.</p>
+    <!-- ========================================================= -->
+    <!-- VISTA 1: ESTANTERÍA (SOLO FORMATOS + BUSCADOR GLOBAL)     -->
+    <!-- ========================================================= -->
+    <section id="view-home" class="space-y-5 w-full">
+      <!-- Banner compacto con estadísticas y buscador global -->
+      <div class="bg-gradient-to-r from-lb-surface via-[#232b35] to-lb-surface p-4 rounded-2xl border border-lb-border space-y-3 w-full">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="min-w-0">
+            <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">Tu Estantería por Formatos</h1>
+            <p class="text-xs text-lb-text mt-0.5">Accede a cada formato por separado o busca al instante cualquier obra de tu colección.</p>
+          </div>
+          <div id="global-stats-bar" class="flex flex-wrap items-center gap-2 bg-[#14181c]/80 px-3 py-2 rounded-xl border border-white/5 text-xs flex-shrink-0">
+            <!-- Estadísticas globales -->
+          </div>
         </div>
-        <div id="global-stats-bar" class="flex flex-wrap items-center gap-2 bg-[#14181c]/75 px-3 py-2 rounded-xl border border-white/5 text-xs flex-shrink-0">
-          <!-- Estadísticas dinámicas -->
+
+        <!-- Buscador global sutil -->
+        <div class="relative w-full">
+          <input id="home-global-search-input"
+                 type="text"
+                 oninput="renderHomeFormats()"
+                 placeholder="Buscar cualquier obra en tu estantería por título, plataforma o notas..."
+                 class="w-full h-9 pl-9 pr-8 rounded-xl bg-[#14181c]/90 border border-lb-border text-white text-xs sm:text-sm placeholder:text-lb-text/60 focus:outline-none focus:border-lb-green" />
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-lb-text text-xs"></i>
+          <button id="home-global-search-clear" onclick="document.getElementById('home-global-search-input').value=''; renderHomeFormats();" class="hidden absolute right-2.5 top-2 text-lb-text hover:text-white text-xs px-1">✕</button>
         </div>
       </div>
 
-      <!-- Cuadrícula de los 6 Formatos Principales -->
+      <!-- Resultados rápidos de búsqueda global (visible solo cuando se escribe) -->
+      <div id="home-global-results-section" class="hidden space-y-3 w-full">
+        <div class="flex items-center justify-between">
+          <h2 id="home-global-results-title" class="text-xs sm:text-sm font-extrabold text-white">Resultados</h2>
+          <button onclick="document.getElementById('home-global-search-input').value=''; renderHomeFormats();" class="text-xs font-semibold text-lb-blue hover:underline">Limpiar búsqueda</button>
+        </div>
+        <div id="home-global-results-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 w-full"></div>
+      </div>
+
+      <!-- Cuadrícula limpia de los 6 Formatos (2 col móvil / 3 col escritorio) -->
       <div id="formats-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 w-full">
         <!-- Poblado por renderHomeFormats() -->
       </div>
+    </section>
 
-      <!-- ORGANIZADORES MIXTOS Y FRANQUICIAS (FILAS DE 3 + BUSCADOR PROPIO) -->
-      <div class="pt-5 border-t border-lb-border/70 space-y-3.5 w-full">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div class="min-w-0">
-            <h2 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
-              <i class="fa-solid fa-folder-tree text-lb-orange"></i>
-              <span>Organizadores Mixtos y Franquicias</span>
-              <span id="mixed-orgs-count-badge" class="text-[11px] px-2 py-0.5 rounded-full bg-lb-elevated text-lb-text font-semibold">0</span>
-            </h2>
-            <p class="text-xs text-lb-text">Agrupa libros, películas, juegos y anime de una misma saga en filas de 3.</p>
+    <!-- ========================================================= -->
+    <!-- VISTA 2: PESTAÑA DEDICADA — FRANQUICIAS Y SAGAS           -->
+    <!-- ========================================================= -->
+    <section id="view-franchises" class="hidden space-y-4 w-full">
+      <!-- Encabezado -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-lb-surface via-[#232b35] to-lb-surface p-4 rounded-2xl border border-lb-border w-full">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <i class="fa-solid fa-folder-tree text-lb-orange text-lg"></i>
+            <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">Franquicias y Sagas</h1>
+            <span id="franchises-count-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-lb-elevated text-lb-light font-bold">0</span>
           </div>
-          <button onclick="openNewOrganizerModal('mixed')" class="self-start sm:self-auto text-xs font-bold px-3.5 py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-white border border-lb-border flex items-center gap-1.5 transition-colors flex-shrink-0">
-            <i class="fa-solid fa-folder-plus text-lb-orange"></i>
-            <span>+ Nueva Franquicia</span>
-          </button>
+          <p class="text-xs text-lb-text mt-0.5">Organiza universos completos mezclando juegos, libros, películas, series, anime y cómics.</p>
         </div>
+        <button onclick="openNewOrganizerModal('mixed')" class="px-3.5 py-2 rounded-xl bg-lb-orange hover:opacity-95 text-black font-extrabold text-xs flex items-center gap-1.5 shadow flex-shrink-0">
+          <i class="fa-solid fa-folder-plus"></i>
+          <span>+ Nueva Franquicia</span>
+        </button>
+      </div>
 
-        <!-- Buscador en vivo de Franquicias Mixtas -->
-        <div class="relative w-full">
-          <input id="home-org-search-input"
+      <!-- Barra de búsqueda + Píldoras de filtro -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 w-full">
+        <div class="relative flex-1 min-w-0">
+          <input id="franchises-search-input"
                  type="text"
-                 oninput="renderHomeFormats()"
-                 placeholder="Buscar franquicia u organizador mixto..."
+                 oninput="renderFranchisesTab()"
+                 placeholder="Buscar franquicia o saga..."
                  class="w-full h-10 pl-9 pr-8 rounded-xl bg-lb-surface border border-lb-border text-white text-xs sm:text-sm placeholder:text-lb-text/60 focus:outline-none focus:border-lb-orange" />
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-lb-text text-xs"></i>
-          <button onclick="document.getElementById('home-org-search-input').value=''; renderHomeFormats();" class="absolute right-2.5 top-2.5 text-lb-text hover:text-white text-xs px-1">✕</button>
+          <button onclick="document.getElementById('franchises-search-input').value=''; renderFranchisesTab();" class="absolute right-2.5 top-2.5 text-lb-text hover:text-white text-xs px-1">✕</button>
         </div>
 
-        <!-- Cuadrícula estricta de 3 por fila -->
-        <div id="mixed-organizers-grid" class="organizers-grid-3">
-          <!-- Poblado en filas de 3 -->
+        <div id="franchises-filter-pills" class="flex flex-wrap items-center gap-1.5 flex-shrink-0">
+          <!-- Todas, Franquicias Mixtas, Por Formato -->
         </div>
+      </div>
+
+      <!-- Cuadrícula estricta de 3 columnas -->
+      <div id="franchises-grid" class="organizers-grid-3">
+        <!-- Tarjetas de franquicias -->
       </div>
     </section>
 
-    <!-- ========================================== -->
-    <!-- VISTA 2: INTERIOR DE UN FORMATO / SAGA     -->
-    <!-- ========================================== -->
+    <!-- ========================================================= -->
+    <!-- VISTA 3: INTERIOR DE UN FORMATO (DESDE ESTANTERÍA)        -->
+    <!-- ========================================================= -->
     <section id="view-format" class="hidden space-y-5 w-full">
-      <!-- Encabezado del Formato -->
+      <!-- Cabecera del Formato -->
       <div class="flex flex-wrap items-center justify-between gap-2.5 pb-3.5 border-b border-lb-border">
         <div class="flex items-center gap-2 flex-wrap min-w-0">
-          <button onclick="navigateHome()" class="px-2.5 py-1.5 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white text-xs font-semibold border border-lb-border flex items-center gap-1.5 transition-colors">
+          <button onclick="switchMainTab('catalog', true)" class="px-2.5 py-1.5 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white text-xs font-semibold border border-lb-border flex items-center gap-1.5 transition-colors">
             <i class="fa-solid fa-arrow-left"></i>
-            <span>Formatos</span>
+            <span>Estantería</span>
           </button>
           <span class="text-lb-text/50">/</span>
           <div id="format-header-title" class="flex items-center gap-2 text-base sm:text-lg font-extrabold text-white truncate"></div>
@@ -410,21 +456,21 @@
         </div>
 
         <div class="flex items-center gap-1.5 flex-shrink-0">
-          <button id="btn-toggle-reorder" onclick="toggleReorderMode()" class="px-3 py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border font-bold text-xs flex items-center gap-1.5 transition-colors">
+          <button id="btn-format-reorder" onclick="toggleReorderMode()" class="px-3 py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border font-bold text-xs flex items-center gap-1.5 transition-colors">
             <i class="fa-solid fa-arrows-left-right text-lb-orange"></i>
             <span>Ordenar (◀ ▶)</span>
           </button>
-          <button onclick="openSearchModalForCurrentFormat()" class="px-3.5 py-2 rounded-xl bg-lb-green hover:bg-[#00c84b] text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
+          <button onclick="openSearchModal(currentFormatId)" class="px-3.5 py-2 rounded-xl bg-lb-green hover:bg-[#00c84b] text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
             <i class="fa-solid fa-plus"></i>
             <span>Agregar Obra</span>
           </button>
         </div>
       </div>
 
-      <!-- Barra de progreso del Formato o Franquicia abierta -->
-      <div id="format-progress-card" class="bg-lb-surface/80 p-3 rounded-2xl border border-lb-border space-y-1.5 w-full">
+      <!-- Barra de progreso del Formato -->
+      <div class="bg-lb-surface/80 p-3 rounded-2xl border border-lb-border space-y-1.5 w-full">
         <div class="flex items-center justify-between gap-2 text-xs">
-          <span id="format-progress-detail" class="text-lb-text font-medium truncate">0 en espera · 0 en curso · 0 completados</span>
+          <span id="format-progress-detail" class="text-lb-text font-medium truncate">0 en espera · 0 en curso · 0 completadas</span>
           <span id="format-progress-pct" class="font-extrabold text-lb-green flex-shrink-0">0%</span>
         </div>
         <div class="progress-track">
@@ -432,92 +478,52 @@
         </div>
       </div>
 
-      <!-- Filtros de Estado + Ocultar agrupadas -->
+      <!-- Filtros de estado + Ocultar agrupadas -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 w-full">
-        <div id="status-filter-bar" class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
-          <!-- Todos, En espera, En curso, Completado, Abandonado -->
-        </div>
+        <div id="format-status-filter-bar" class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto"></div>
 
-        <label id="wrap-hide-organized" class="flex items-center gap-2 text-xs text-lb-text cursor-pointer select-none bg-lb-surface px-3 py-1.5 rounded-xl border border-lb-border self-start sm:self-auto flex-shrink-0">
-          <input type="checkbox" id="toggle-hide-organized" onchange="toggleHideOrganized(this.checked)" class="rounded bg-lb-elevated border-lb-border text-lb-green focus:ring-0 accent-[#00e054]" />
+        <label class="flex items-center gap-2 text-xs text-lb-text cursor-pointer select-none bg-lb-surface px-3 py-1.5 rounded-xl border border-lb-border self-start sm:self-auto flex-shrink-0">
+          <input type="checkbox" id="toggle-hide-organized" onchange="toggleHideOrganized(this.checked)" class="rounded bg-lb-elevated border-lb-border accent-[#00e054]" />
           <span>Ocultar agrupadas</span>
         </label>
       </div>
 
-      <!-- ORGANIZADORES DE ESTE FORMATO EN FILAS DE 3 + BUSCADOR PROPIO -->
-      <div id="format-organizers-panel" class="bg-lb-surface/70 rounded-2xl p-3.5 sm:p-4 border border-lb-border/80 space-y-3 w-full">
+      <!-- Sección compacta y plegable de Sagas dentro de este Formato -->
+      <div id="format-sagas-wrapper" class="bg-lb-surface/65 rounded-2xl p-3 sm:p-4 border border-lb-border/80 space-y-3 w-full">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
+          <button onclick="toggleFormatSagasCollapsed()" class="flex items-center gap-2 text-left group focus:outline-none">
+            <i id="format-sagas-chevron" class="fa-solid fa-chevron-down text-[11px] text-lb-text group-hover:text-white transition-transform"></i>
             <i class="fa-solid fa-boxes-stacked text-lb-blue text-xs sm:text-sm"></i>
-            <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">Organizadores / Sagas</h3>
-            <span id="format-orgs-count-badge" class="text-[11px] px-2 py-0.5 rounded-full bg-lb-elevated text-lb-text font-semibold">0</span>
-          </div>
-          <button onclick="openNewOrganizerModal(currentFormatId === 'mixed' ? 'mixed' : 'format')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-lb-elevated hover:bg-lb-border text-white flex items-center gap-1.5 transition-colors">
+            <h3 id="format-sagas-heading" class="text-xs sm:text-sm font-extrabold text-white">Sagas en este formato</h3>
+            <span id="format-sagas-count" class="text-[11px] px-2 py-0.5 rounded-full bg-lb-elevated text-lb-text font-semibold">0</span>
+          </button>
+          <button onclick="openNewOrganizerModal('format')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-lb-elevated hover:bg-lb-border text-white flex items-center gap-1.5 transition-colors">
             <i class="fa-solid fa-plus text-lb-blue"></i>
             <span>+ Nuevo Organizador</span>
           </button>
         </div>
 
-        <!-- Buscador de Organizadores del Formato -->
-        <div class="relative w-full">
-          <input id="format-org-search-input"
-                 type="text"
-                 oninput="renderFormatView()"
-                 placeholder="Buscar saga u organizador en esta carpeta..."
-                 class="w-full h-9 pl-8 pr-7 rounded-xl bg-[#14181c] border border-lb-border text-white text-xs placeholder:text-lb-text/60 focus:outline-none focus:border-lb-blue" />
-          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-lb-text text-xs"></i>
-          <button onclick="document.getElementById('format-org-search-input').value=''; renderFormatView();" class="absolute right-2.5 top-2 text-lb-text hover:text-white text-xs">✕</button>
-        </div>
-
-        <!-- Cuadrícula de 3 por fila -->
-        <div id="format-organizers-row" class="organizers-grid-3">
-          <!-- Mazos visuales en filas de 3 -->
+        <div id="format-sagas-body" class="organizers-grid-3">
+          <!-- Sagas del formato en 3 columnas -->
         </div>
       </div>
 
-      <!-- Banner cuando un Organizador está abierto -->
-      <div id="active-organizer-banner" class="hidden bg-gradient-to-r from-[#1f2937] to-lb-surface p-3.5 rounded-2xl border border-lb-blue/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
-        <div class="min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-lb-blue/20 text-lb-blue">Organizador Abierto</span>
-            <h3 id="active-organizer-name" class="text-sm sm:text-base font-extrabold text-white truncate"></h3>
-          </div>
-          <p class="text-xs text-lb-text mt-1">Arrastra, mantén presionado (250ms) o usa <span class="text-white font-semibold">◀ ▶</span> para cambiar el orden.</p>
+      <!-- Cuadrícula de portadas estilo Letterboxd -->
+      <div class="space-y-2 w-full">
+        <div class="flex items-center justify-between text-[11px] text-lb-text px-0.5">
+          <span id="format-visible-hint">Mostrando 0 obras</span>
+          <span class="hidden sm:inline">Arrastra con el mouse o mantén pulsado (250ms) en móvil para reordenar</span>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <button onclick="openAddExistingToOrganizerModal()" class="px-3 py-1.5 rounded-xl bg-lb-blue text-black font-bold text-xs flex items-center gap-1.5 hover:opacity-90">
-            <i class="fa-solid fa-check-double"></i>
-            <span>Añadir de mi catálogo</span>
-          </button>
-          <button onclick="requestDeleteCurrentOrganizer()" class="px-2.5 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-300 text-xs font-semibold border border-red-500/30 flex items-center gap-1">
-            <i class="fa-solid fa-trash-can"></i>
-            <span class="hidden sm:inline">Eliminar</span>
-          </button>
-          <button onclick="closeOrganizerView()" class="px-3 py-1.5 rounded-xl bg-lb-elevated hover:bg-lb-border text-white text-xs font-semibold">
-            Cerrar
-          </button>
-        </div>
-      </div>
 
-      <!-- Ayuda rápida de reordenamiento -->
-      <div class="flex items-center justify-between text-[11px] text-lb-text px-0.5">
-        <span id="format-visible-hint">Mostrando 0 obras</span>
-        <span class="hidden sm:inline">Arrastra con el mouse o mantén pulsado (250ms) en móvil para reordenar</span>
-      </div>
-
-      <!-- CUADRÍCULA DE PORTADAS ESTILO LETTERBOXD -->
-      <div class="w-full">
-        <div id="clean-poster-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 sm:gap-4 w-full">
-          <!-- Portadas 2:3 limpias + estrellas/insignias debajo -->
-        </div>
+        <div id="format-poster-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 w-full"></div>
 
         <div id="format-empty-state" class="hidden text-center py-12 px-4 bg-lb-surface/40 rounded-2xl border border-dashed border-lb-border">
           <div class="w-11 h-11 rounded-full bg-lb-elevated mx-auto flex items-center justify-center text-lb-text mb-2.5">
             <i class="fa-solid fa-images text-base"></i>
           </div>
           <h4 class="text-sm font-bold text-white">No hay portadas en esta vista</h4>
-          <p class="text-xs text-lb-text max-w-md mx-auto mt-1 mb-4">Cambia el filtro de estado o busca una obra para elegir entre decenas de portadas offline.</p>
-          <button onclick="openSearchModalForCurrentFormat()" class="px-4 py-2 rounded-xl bg-lb-green text-black font-bold text-xs inline-flex items-center gap-1.5">
+          <p class="text-xs text-lb-text max-w-md mx-auto mt-1 mb-4">Cambia el filtro de estado o agrega una nueva obra para elegir su portada offline.</p>
+          <button onclick="openSearchModal(currentFormatId)" class="px-4 py-2 rounded-xl bg-lb-green text-black font-bold text-xs inline-flex items-center gap-1.5">
             <i class="fa-solid fa-magnifying-glass"></i>
             <span>Buscar y elegir portada</span>
           </button>
@@ -525,19 +531,120 @@
       </div>
     </section>
 
-    <!-- ========================================== -->
-    <!-- VISTA 3: TIER LISTS CON NOMBRE GUARDABLE   -->
-    <!-- ========================================== -->
-    <section id="view-tierlists" class="hidden space-y-5 w-full">
-      <div class="bg-lb-surface p-3.5 sm:p-4 rounded-2xl border border-lb-border space-y-3.5 w-full">
-        <!-- Fila 1: Selector de listas guardadas + Crear nueva -->
-        <div class="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-lb-border">
+    <!-- ========================================================= -->
+    <!-- VISTA 4: VISTA ENFOCADA DE ORGANIZADOR / FRANQUICIA       -->
+    <!-- (SIN MOSTRAR OTROS ORGANIZADORES ARRIBA NI ADENTRO)       -->
+    <!-- ========================================================= -->
+    <section id="view-organizer" class="hidden space-y-5 w-full">
+      <!-- Barra superior de regreso + acciones -->
+      <div class="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-lb-border">
+        <button id="org-back-btn" onclick="goBackFromOrganizer()" class="px-3 py-1.5 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white text-xs font-semibold border border-lb-border flex items-center gap-1.5 transition-colors">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span id="org-back-label">Volver a Franquicias</span>
+        </button>
+
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button onclick="openAddExistingToOrganizerModal()" class="px-3 py-2 rounded-xl bg-lb-blue hover:opacity-90 text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-check-double"></i>
+            <span>+ Añadir de mi catálogo</span>
+          </button>
+          <button onclick="openSearchModalForOrganizer()" class="px-3 py-2 rounded-xl bg-lb-green hover:bg-[#00c84b] text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-plus"></i>
+            <span>+ Nueva Obra aquí</span>
+          </button>
+          <button id="btn-org-reorder" onclick="toggleReorderMode()" class="px-3 py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border font-bold text-xs flex items-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-arrows-left-right text-lb-orange"></i>
+            <span>Ordenar (◀ ▶)</span>
+          </button>
+          <button onclick="requestDeleteCurrentOrganizer()" class="px-2.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-300 text-xs font-semibold border border-red-500/30 flex items-center gap-1.5" title="Eliminar este organizador">
+            <i class="fa-solid fa-trash-can"></i>
+            <span class="hidden sm:inline">Eliminar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tarjeta enfocada de cabecera + renombrado en línea + progreso -->
+      <div class="bg-gradient-to-r from-lb-surface via-[#232b35] to-lb-surface p-4 rounded-2xl border border-lb-border space-y-3 w-full">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <!-- Modo vista del título -->
+          <div id="org-title-display-row" class="flex items-center gap-2 flex-wrap min-w-0">
+            <span id="org-scope-pill" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-lb-orange/20 text-lb-orange border border-lb-orange/30">Franquicia Mixta</span>
+            <h1 id="org-focused-title" class="text-lg sm:text-xl font-extrabold text-white tracking-tight truncate"></h1>
+            <button onclick="startInlineRenameOrganizer()" title="Renombrar organizador" class="w-7 h-7 rounded-lg bg-lb-elevated hover:bg-lb-border text-lb-text hover:text-white flex items-center justify-center text-xs transition-colors">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <span id="org-focused-count" class="text-xs px-2 py-0.5 rounded-full bg-lb-elevated text-lb-text font-semibold">0 obras</span>
+          </div>
+
+          <!-- Modo edición en línea del título -->
+          <div id="org-title-edit-row" class="hidden flex items-center gap-2 w-full sm:w-auto flex-1">
+            <input id="org-inline-rename-input"
+                   type="text"
+                   onkeydown="if(event.key==='Enter') saveInlineRenameOrganizer(); if(event.key==='Escape') cancelInlineRenameOrganizer();"
+                   class="flex-1 sm:max-w-sm h-9 px-3 rounded-xl bg-[#14181c] border border-lb-green text-white font-bold text-sm focus:outline-none" />
+            <button onclick="saveInlineRenameOrganizer()" class="h-9 px-3 rounded-xl bg-lb-green text-black font-extrabold text-xs">Guardar</button>
+            <button onclick="cancelInlineRenameOrganizer()" class="h-9 px-2.5 rounded-xl bg-lb-elevated text-white text-xs font-semibold">✕</button>
+          </div>
+        </div>
+
+        <!-- Barra de progreso naranja-a-verde -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between gap-2 text-xs">
+            <span id="org-progress-summary" class="text-lb-text font-medium">0 de 0 completadas (0%)</span>
+            <span id="org-progress-pct" class="font-extrabold text-lb-green">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="org-progress-fill" class="progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Píldoras de estado -->
+      <div id="org-status-filter-bar" class="flex flex-wrap items-center gap-1.5 w-full"></div>
+
+      <!-- Cuadrícula limpia SOLO con las obras de este organizador -->
+      <div class="space-y-2 w-full">
+        <div class="flex items-center justify-between text-[11px] text-lb-text px-0.5">
+          <span id="org-visible-hint">Mostrando 0 obras</span>
+          <span class="hidden sm:inline">Arrastra o mantén pulsado (250ms) para ordenar la saga</span>
+        </div>
+
+        <div id="org-poster-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 w-full"></div>
+
+        <div id="org-empty-state" class="hidden text-center py-12 px-4 bg-lb-surface/40 rounded-2xl border border-dashed border-lb-border">
+          <div class="w-11 h-11 rounded-full bg-lb-elevated mx-auto flex items-center justify-center text-lb-text mb-2.5">
+            <i class="fa-solid fa-folder-open text-base"></i>
+          </div>
+          <h4 class="text-sm font-bold text-white">Este organizador aún no tiene obras visibles</h4>
+          <p class="text-xs text-lb-text max-w-md mx-auto mt-1 mb-4">Añade obras que ya tengas en tu catálogo o busca una nueva portada directamente aquí.</p>
+          <div class="flex flex-wrap justify-center gap-2">
+            <button onclick="openAddExistingToOrganizerModal()" class="px-4 py-2 rounded-xl bg-lb-blue text-black font-extrabold text-xs inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-check-double"></i>
+              <span>Añadir de mi catálogo</span>
+            </button>
+            <button onclick="openSearchModalForOrganizer()" class="px-4 py-2 rounded-xl bg-lb-green text-black font-extrabold text-xs inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-plus"></i>
+              <span>Nueva Obra aquí</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- VISTA 5: TIER LISTS MEJORADAS (COMPACTAS + RÁPIDAS + PNG) -->
+    <!-- ========================================================= -->
+    <section id="view-tierlists" class="hidden space-y-4 w-full pb-20">
+      <!-- Barra superior de control -->
+      <div class="bg-lb-surface p-3.5 sm:p-4 rounded-2xl border border-lb-border space-y-3 w-full">
+        <!-- Fila 1: Selector de listas + Botones de tablero -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-lb-border">
           <div class="flex flex-wrap items-center gap-2 min-w-0 flex-1">
-            <span class="text-xs font-bold uppercase tracking-wider text-lb-orange flex items-center gap-1.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-lb-blue flex items-center gap-1.5">
               <i class="fa-solid fa-bookmark"></i>
               <span>Listas:</span>
             </span>
-            <select id="tierlist-selector" onchange="selectTierList(this.value)" class="bg-[#14181c] text-white text-xs sm:text-sm font-bold px-3 py-2 rounded-xl border border-lb-border focus:outline-none focus:border-lb-orange min-w-[165px] max-w-full"></select>
+            <select id="tierlist-selector" onchange="selectTierList(this.value)" class="bg-[#14181c] text-white text-xs sm:text-sm font-bold px-3 py-2 rounded-xl border border-lb-border focus:outline-none focus:border-lb-blue min-w-[165px] max-w-full"></select>
             <button onclick="openNewTierListModal()" class="px-3 py-2 rounded-xl bg-lb-green hover:bg-[#00c84b] text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
               <i class="fa-solid fa-plus"></i>
               <span>+ Nueva Tier List</span>
@@ -547,7 +654,7 @@
           <div class="flex flex-wrap items-center gap-1.5">
             <button onclick="addTierRow()" class="px-2.5 py-2 rounded-xl bg-lb-elevated hover:bg-lb-border text-white text-xs font-semibold flex items-center gap-1">
               <i class="fa-solid fa-plus text-lb-blue"></i>
-              <span>Fila</span>
+              <span>+ Fila</span>
             </button>
             <button onclick="requestResetCurrentTierList()" class="px-2.5 py-2 rounded-xl bg-lb-elevated hover:bg-lb-border text-lb-text hover:text-white text-xs font-semibold">
               Vaciar
@@ -557,52 +664,65 @@
             </button>
             <button onclick="exportTierListAsImage()" class="px-3 py-2 rounded-xl bg-lb-orange hover:opacity-95 text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
               <i class="fa-solid fa-download"></i>
-              <span>PNG</span>
+              <span>Exportar PNG</span>
             </button>
           </div>
         </div>
 
-        <!-- Fila 2: Nombre editable -->
-        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-          <label class="text-xs font-bold text-lb-text whitespace-nowrap">Nombre de esta Tier List:</label>
-          <div class="flex items-center gap-2 flex-1">
+        <!-- Fila 2: Nombre editable + Selector de densidad (Compacto / Normal / Grande) -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2 flex-1 min-w-0">
             <input id="tierlist-custom-name-input"
                    type="text"
-                   placeholder="Ej: Saga Castlevania, Mejores Libros, Top Películas..."
+                   placeholder="Nombre de esta Tier List..."
                    onkeydown="if(event.key==='Enter') saveCurrentTierListName()"
-                   class="w-full h-10 px-3.5 rounded-xl bg-[#14181c] border border-lb-border text-white font-extrabold text-sm focus:outline-none focus:border-lb-green" />
-            <button onclick="saveCurrentTierListName()" class="h-10 px-4 rounded-xl bg-lb-elevated hover:bg-lb-green hover:text-black text-white font-bold text-xs whitespace-nowrap transition-colors flex items-center gap-1.5">
+                   class="w-full h-9 px-3 rounded-xl bg-[#14181c] border border-lb-border text-white font-extrabold text-xs sm:text-sm focus:outline-none focus:border-lb-green" />
+            <button onclick="saveCurrentTierListName()" class="h-9 px-3.5 rounded-xl bg-lb-elevated hover:bg-lb-green hover:text-black text-white font-bold text-xs whitespace-nowrap transition-colors flex items-center gap-1.5">
               <i class="fa-solid fa-floppy-disk"></i>
               <span>Guardar Nombre</span>
             </button>
           </div>
-        </div>
-      </div>
 
-      <!-- Aviso táctil -->
-      <div class="text-xs text-lb-text bg-lb-surface/60 px-3.5 py-2 rounded-xl border border-lb-border">
-        <i class="fa-solid fa-hand-pointer text-lb-green mr-1.5"></i>
-        <strong>Cómo clasificar:</strong> Toca una portada para seleccionarla y luego toca la fila (S, A, B...) o la bandeja inferior para devolverla, o arrástrala directamente.
+          <!-- Selector de tamaño / densidad de portadas -->
+          <div class="flex items-center gap-1.5 bg-[#14181c] p-1 rounded-xl border border-lb-border self-start lg:self-auto flex-shrink-0">
+            <span class="text-[11px] font-bold text-lb-text px-2">Tamaño:</span>
+            <button id="tier-size-compact" onclick="setTierPosterSize('compact')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors">Compacto</button>
+            <button id="tier-size-normal"  onclick="setTierPosterSize('normal')"  class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors">Normal</button>
+            <button id="tier-size-large"   onclick="setTierPosterSize('large')"   class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors">Grande</button>
+          </div>
+        </div>
       </div>
 
       <!-- TABLERO DE LA TIER LIST -->
       <div id="tier-board" class="rounded-2xl overflow-hidden border border-lb-border bg-[#101418] divide-y divide-lb-border shadow-xl w-full">
-        <!-- Filas S, A, B, C, D -->
+        <!-- Filas dinámicas S, A, B, C, D... -->
       </div>
 
       <!-- BANDEJA DEL CATÁLOGO SIN CLASIFICAR -->
-      <div class="bg-lb-surface rounded-2xl p-3.5 sm:p-4 border border-lb-border space-y-3.5 w-full">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div class="bg-lb-surface rounded-2xl p-3.5 sm:p-4 border border-lb-border space-y-3 w-full">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           <div>
-            <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+            <h3 class="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
               <i class="fa-solid fa-box-open text-lb-green"></i>
-              <span>Bandeja de tu Catálogo (Sin clasificar)</span>
+              <span>Bandeja sin clasificar</span>
+              <span id="tier-unranked-count" class="text-[11px] px-2 py-0.5 rounded-full bg-lb-elevated text-lb-text font-semibold">0</span>
             </h3>
-            <p class="text-[11px] text-lb-text">Filtra tus portadas por formato o por organizador para armar tu ranking.</p>
+            <p class="text-[11px] text-lb-text">Toca cualquier portada para asignar rápido en 1 toque o arrastra directamente a una fila.</p>
           </div>
 
+          <!-- Filtros de bandeja: Buscador + Formato + Franquicia -->
           <div class="flex flex-wrap items-center gap-2">
-            <select id="tier-tray-format-filter" onchange="renderTierListView()" class="bg-lb-elevated text-white text-xs px-2.5 py-1.5 rounded-xl border border-lb-border focus:outline-none">
+            <div class="relative flex-1 sm:flex-initial min-w-[150px]">
+              <input id="tier-tray-search"
+                     type="text"
+                     oninput="renderTierListView()"
+                     placeholder="Filtrar por título..."
+                     class="w-full h-8 pl-7 pr-6 rounded-xl bg-[#14181c] border border-lb-border text-white text-xs placeholder:text-lb-text/60 focus:outline-none focus:border-lb-blue" />
+              <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-lb-text text-[10px]"></i>
+              <button onclick="document.getElementById('tier-tray-search').value=''; renderTierListView();" class="absolute right-2 top-1.5 text-lb-text hover:text-white text-[10px]">✕</button>
+            </div>
+
+            <select id="tier-tray-format-filter" onchange="renderTierListView()" class="h-8 bg-lb-elevated text-white text-xs px-2.5 rounded-xl border border-lb-border focus:outline-none">
               <option value="all">Todos los formatos</option>
               <option value="libros">Libros</option>
               <option value="videojuegos">Videojuegos</option>
@@ -612,23 +732,40 @@
               <option value="comics">Cómics / Manga</option>
             </select>
 
-            <select id="tier-tray-org-filter" onchange="renderTierListView()" class="bg-lb-elevated text-white text-xs px-2.5 py-1.5 rounded-xl border border-lb-border focus:outline-none max-w-[180px] truncate">
-              <option value="all">Cualquier organizador</option>
+            <select id="tier-tray-org-filter" onchange="renderTierListView()" class="h-8 bg-lb-elevated text-white text-xs px-2.5 rounded-xl border border-lb-border focus:outline-none max-w-[175px] truncate">
+              <option value="all">Todas las franquicias</option>
             </select>
           </div>
         </div>
 
         <div id="tier-unranked-tray"
-             onclick="handleTapTierTray()"
              ondragover="handleTierDragOver(event)"
              ondrop="handleTierDropToTray(event)"
-             class="min-h-[115px] p-3 rounded-xl bg-[#14181c] border border-lb-border flex flex-wrap gap-2 items-center w-full cursor-pointer">
+             class="min-h-[96px] p-2 rounded-xl bg-[#14181c] border border-lb-border flex flex-wrap gap-1.5 items-start content-start w-full">
           <!-- Portadas sin clasificar -->
         </div>
       </div>
     </section>
 
   </main>
+
+  <!-- ========================================================= -->
+  <!-- BARRA FLOTANTE DE ASIGNACIÓN RÁPIDA EN TIER LISTS         -->
+  <!-- ========================================================= -->
+  <div id="tier-quick-assign-bar" class="fixed bottom-3 inset-x-0 z-40 hidden px-3 pointer-events-none">
+    <div class="max-w-[780px] mx-auto bg-[#1b222a]/98 backdrop-blur-md border border-lb-green/60 rounded-2xl p-2.5 shadow-2xl pointer-events-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <img id="quick-assign-thumb" src="" alt="" class="w-8 h-12 rounded object-cover border border-white/20 flex-shrink-0" />
+        <div class="min-w-0">
+          <span class="text-[10px] uppercase tracking-wider font-bold text-lb-green block leading-none">Asignación rápida</span>
+          <span id="quick-assign-title" class="text-xs font-extrabold text-white truncate block mt-0.5"></span>
+        </div>
+      </div>
+      <div id="quick-assign-buttons" class="flex flex-wrap items-center gap-1.5">
+        <!-- Botones de 1 toque por cada fila (S, A, B...) + Bandeja + Cerrar -->
+      </div>
+    </div>
+  </div>
 
   <!-- ========================================================= -->
   <!-- MODAL 1: BUSCADOR MULTI-PORTADA 100% ABIERTO (SIN CLAVES) -->
@@ -654,7 +791,6 @@
       </div>
 
       <div class="p-3.5 sm:p-5 overflow-y-auto overflow-x-hidden space-y-4 flex-1">
-        <!-- Controles de Búsqueda -->
         <div class="space-y-2.5">
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
             <div class="sm:col-span-3">
@@ -684,7 +820,7 @@
             </div>
           </div>
 
-          <!-- Botones rápidos de prueba -->
+          <!-- Accesos rápidos de prueba -->
           <div class="flex items-center gap-1.5 flex-wrap text-[11px]">
             <span class="text-lb-text">Probar motor:</span>
             <button onclick="quickDemoSearch('libros', 'Dracula Bram Stoker')" class="px-2 py-1 rounded-lg bg-lb-elevated hover:bg-lb-border text-white">📚 Dracula</button>
@@ -696,7 +832,7 @@
           </div>
         </div>
 
-        <!-- Opción manual: subir imagen o pegar URL -->
+        <!-- Portada manual: URL o archivo local -->
         <div class="bg-[#14181c] rounded-xl p-2.5 border border-lb-border/80">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="text-[11px] font-semibold text-lb-text flex items-center gap-1.5">
@@ -722,13 +858,11 @@
           </div>
         </div>
 
-        <!-- Indicador de carga -->
         <div id="search-loading" class="hidden py-8 text-center space-y-2">
           <i class="fa-solid fa-circle-notch fa-spin text-2xl text-lb-green"></i>
           <p id="search-loading-text" class="text-xs text-lb-text">Extrayendo galerías de portadas en paralelo...</p>
         </div>
 
-        <!-- Resultados con filtros por fuente -->
         <div id="search-results-area" class="space-y-3"></div>
       </div>
     </div>
@@ -772,11 +906,11 @@
             <input id="detail-title-input" type="text" class="w-full px-3 py-2 rounded-xl bg-[#14181c] border border-lb-border text-white font-bold text-sm sm:text-base focus:outline-none focus:border-lb-green" />
           </div>
 
-          <!-- 1. Estrellas + 2. Estado -->
+          <!-- Estrellas + Estado -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div class="bg-[#14181c] p-2.5 rounded-xl border border-lb-border">
               <div class="flex items-center justify-between mb-1">
-                <label class="text-[11px] font-bold uppercase tracking-wider text-lb-text">Estrellas</label>
+                <label class="text-[11px] font-bold uppercase tracking-wider text-lb-text">Puntuación</label>
                 <button onclick="setDetailRating(0)" class="text-[10px] text-lb-text hover:text-white">Limpiar</button>
               </div>
               <div class="flex items-center justify-between gap-1">
@@ -788,7 +922,7 @@
             <div class="bg-[#14181c] p-2.5 rounded-xl border border-lb-border">
               <label class="block text-[11px] font-bold uppercase tracking-wider text-lb-text mb-1">Estado</label>
               <select id="detail-status-select" class="w-full bg-lb-surface text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-lb-border focus:outline-none focus:border-lb-green">
-                <option value="backlog">⏳ En espera (Pendiente)</option>
+                <option value="backlog">⏳ En espera</option>
                 <option value="playing">🔥 En curso</option>
                 <option value="completed">✅ Completado</option>
                 <option value="dropped">🛑 Abandonado</option>
@@ -796,73 +930,59 @@
             </div>
           </div>
 
-          <!-- Plataforma + Edición/Versión (Opcionales) -->
+          <!-- Plataforma + Versión/Edición -->
           <div class="grid grid-cols-2 gap-2.5">
             <div class="bg-[#14181c] p-2.5 rounded-xl border border-lb-border">
               <label class="block text-[10px] font-bold uppercase tracking-wider text-lb-text mb-1">Plataforma (Opcional)</label>
-              <input id="detail-platform-input" type="text" list="detail-platform-suggestions" placeholder="Steam, PS5, 3DS, Físico..." class="w-full bg-lb-surface text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-lb-border focus:outline-none focus:border-lb-green" />
-              <datalist id="detail-platform-suggestions">
+              <input id="detail-platform-input" type="text" list="detail-platform-list" placeholder="Steam, 3DS, PS5, Físico..." class="w-full bg-lb-surface text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-lb-border focus:outline-none focus:border-lb-green" />
+              <datalist id="detail-platform-list">
                 <option value="Steam"></option>
+                <option value="PC"></option>
                 <option value="PS5"></option>
                 <option value="Switch"></option>
                 <option value="3DS"></option>
                 <option value="Wii U"></option>
                 <option value="GBA"></option>
                 <option value="PSP"></option>
-                <option value="PC"></option>
-                <option value="4K UHD"></option>
-                <option value="Blu-ray"></option>
-                <option value="Streaming"></option>
                 <option value="Físico"></option>
-                <option value="Kindle / Digital"></option>
+                <option value="Digital"></option>
+                <option value="4K UHD"></option>
+                <option value="Streaming"></option>
               </datalist>
             </div>
 
             <div class="bg-[#14181c] p-2.5 rounded-xl border border-lb-border">
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-lb-text mb-1">Edición / Versión</label>
-              <select id="detail-edition-select" class="w-full bg-lb-surface text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-lb-border focus:outline-none focus:border-lb-green">
-                <option value="">— Sin especificar —</option>
-                <option value="Original">Original</option>
-                <option value="Remake">Remake</option>
-                <option value="Remaster">Remaster</option>
-                <option value="Definitiva">Definitiva</option>
-                <option value="Director's Cut">Director's Cut</option>
-                <option value="Coleccionista">Coleccionista</option>
-              </select>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-lb-text mb-1">Versión / Edición</label>
+              <input id="detail-version-input" type="text" list="detail-version-list" placeholder="Original, Remake, Remaster..." class="w-full bg-lb-surface text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-lb-border focus:outline-none focus:border-lb-green" />
+              <datalist id="detail-version-list">
+                <option value="Original"></option>
+                <option value="Remake"></option>
+                <option value="Remaster"></option>
+                <option value="Definitiva"></option>
+                <option value="Director's Cut"></option>
+                <option value="Coleccionista"></option>
+              </datalist>
             </div>
           </div>
 
-          <!-- 3. Fecha + Continuidad -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div class="bg-[#14181c] p-2.5 rounded-xl border border-lb-border flex items-center justify-between gap-2">
-              <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-lb-text">Fecha</label>
-                <span class="text-[10px] text-lb-text/70">Diario</span>
-              </div>
-              <input id="detail-date-input" type="date" class="bg-lb-surface text-white text-xs px-2 py-1.5 rounded-lg border border-lb-border focus:outline-none focus:border-lb-green" />
+          <!-- Fecha -->
+          <div class="bg-[#14181c] p-2.5 rounded-xl border border-lb-border flex items-center justify-between gap-2">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-lb-text">Fecha</label>
+              <span class="text-[10px] text-lb-text/70">Registro en tu diario</span>
             </div>
-
-            <div class="bg-[#14181c] p-2.5 rounded-xl border border-lb-border flex items-center justify-between gap-2">
-              <label class="text-[10px] font-bold uppercase tracking-wider text-lb-text">Canon</label>
-              <select id="detail-canon-select" class="bg-lb-surface text-white text-xs font-semibold px-2 py-1.5 rounded-lg border border-lb-border focus:outline-none focus:border-lb-green">
-                <option value="">— Opcional —</option>
-                <option value="Canon">Canon</option>
-                <option value="Spin-off">Spin-off</option>
-                <option value="Relleno">Relleno</option>
-                <option value="Alternativo">Alternativo</option>
-              </select>
-            </div>
+            <input id="detail-date-input" type="date" class="bg-lb-surface text-white text-xs px-2.5 py-1.5 rounded-lg border border-lb-border focus:outline-none focus:border-lb-green" />
           </div>
 
-          <!-- 4. Notas -->
+          <!-- Notas -->
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-lb-text mb-1">Notas Personales / Reseña</label>
-            <textarea id="detail-notes-input" rows="3" placeholder="Escribe tus impresiones, plataforma, edición o comentarios..." class="w-full p-2.5 rounded-xl bg-[#14181c] border border-lb-border text-white text-xs focus:outline-none focus:border-lb-green resize-none"></textarea>
+            <textarea id="detail-notes-input" rows="3" placeholder="Impresiones, rutas completadas, edición o comentarios..." class="w-full p-2.5 rounded-xl bg-[#14181c] border border-lb-border text-white text-xs focus:outline-none focus:border-lb-green resize-none"></textarea>
           </div>
 
-          <!-- Asignación a Organizadores -->
+          <!-- Franquicias / Organizadores -->
           <div class="bg-[#14181c] p-2.5 rounded-xl border border-lb-border">
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-lb-text mb-1.5">En Organizadores / Franquicias</label>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-lb-text mb-1.5">En Franquicias / Organizadores</label>
             <div id="detail-organizers-list" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto"></div>
           </div>
 
@@ -882,26 +1002,40 @@
   </div>
 
   <!-- ========================================================= -->
-  <!-- MODAL 3A: CREAR ORGANIZADOR O FRANQUICIA                  -->
+  <!-- MODAL 3A: CREAR NUEVA FRANQUICIA / ORGANIZADOR            -->
   <!-- ========================================================= -->
   <div id="modal-organizer" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-lb-surface border border-lb-border rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
-        <h3 id="org-modal-title" class="text-base font-extrabold text-white">Nuevo Organizador</h3>
+        <h3 id="org-modal-title" class="text-base font-extrabold text-white">Nueva Franquicia u Organizador</h3>
         <button onclick="closeOrganizerModal()" class="text-lb-text hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div>
-        <label class="block text-xs font-semibold text-lb-text mb-1">Nombre del Organizador o Franquicia</label>
-        <input id="org-name-input" type="text" onkeydown="if(event.key==='Enter') confirmCreateOrganizer()" placeholder="Ej: Universo Castlevania, Saga Dune, Pendientes 2026..." class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-lb-border text-white text-sm focus:outline-none focus:border-lb-green" />
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-lb-text mb-1">Nombre</label>
+          <input id="org-name-input" type="text" onkeydown="if(event.key==='Enter') confirmCreateOrganizer()" placeholder="Ej: Universo Castlevania, Saga Dune, Metal Gear..." class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-lb-border text-white text-sm focus:outline-none focus:border-lb-orange" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-lb-text mb-1">Tipo de Organizador</label>
+          <select id="org-format-select" class="w-full px-3 py-2 rounded-xl bg-[#14181c] border border-lb-border text-white text-xs font-semibold focus:outline-none focus:border-lb-orange">
+            <option value="mixed">🌐 Franquicia Mixta (todos los formatos)</option>
+            <option value="libros">📚 Solo Libros</option>
+            <option value="videojuegos">🎮 Solo Videojuegos</option>
+            <option value="peliculas">🎬 Solo Películas</option>
+            <option value="series">📺 Solo Series</option>
+            <option value="anime">⛩️ Solo Anime</option>
+            <option value="comics">🗯️ Solo Cómics / Manga</option>
+          </select>
+        </div>
       </div>
       <div class="flex justify-end gap-2 pt-1">
         <button onclick="closeOrganizerModal()" class="px-4 py-2 rounded-xl bg-lb-elevated text-white text-xs font-semibold">Cancelar</button>
-        <button onclick="confirmCreateOrganizer()" class="px-4 py-2 rounded-xl bg-lb-green text-black font-bold text-xs">Crear</button>
+        <button onclick="confirmCreateOrganizer()" class="px-4 py-2 rounded-xl bg-lb-orange text-black font-extrabold text-xs">Crear</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL 3B: NUEVA TIER LIST CON NOMBRE PERSONALIZADO -->
+  <!-- MODAL 3B: NUEVA TIER LIST -->
   <div id="modal-new-tierlist" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-lb-surface border border-lb-border rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
@@ -910,39 +1044,42 @@
       </div>
       <div>
         <label class="block text-xs font-semibold text-lb-text mb-1">¿Cómo quieres llamar a esta Tier List?</label>
-        <input id="new-tierlist-name-input" type="text" onkeydown="if(event.key==='Enter') confirmCreateNewTierList()" placeholder="Ej: Ranking Saga Resident Evil, Mis Libros Favoritos..." class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-lb-border text-white text-sm focus:outline-none focus:border-lb-orange" />
+        <input id="new-tierlist-name-input" type="text" onkeydown="if(event.key==='Enter') confirmCreateNewTierList()" placeholder="Ej: Ranking Saga Resident Evil, Top Libros..." class="w-full px-3.5 py-2.5 rounded-xl bg-[#14181c] border border-lb-border text-white text-sm focus:outline-none focus:border-lb-blue" />
       </div>
       <div class="flex justify-end gap-2 pt-1">
         <button onclick="closeNewTierListModal()" class="px-4 py-2 rounded-xl bg-lb-elevated text-white text-xs font-semibold">Cancelar</button>
-        <button onclick="confirmCreateNewTierList()" class="px-4 py-2 rounded-xl bg-lb-orange text-black font-bold text-xs">Crear y Guardar</button>
+        <button onclick="confirmCreateNewTierList()" class="px-4 py-2 rounded-xl bg-lb-green text-black font-extrabold text-xs">Crear y Guardar</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL 3C: AÑADIR OBRAS EXISTENTES AL ORGANIZADOR ACTIVO -->
   <div id="modal-add-to-org" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-lb-surface border border-lb-border rounded-2xl max-w-2xl w-full p-5 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
+    <div class="bg-lb-surface border border-lb-border rounded-2xl max-w-2xl w-full p-5 space-y-3.5 shadow-2xl max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-extrabold text-white">Seleccionar obras para este Organizador</h3>
+        <h3 class="text-base font-extrabold text-white">Añadir obras de mi catálogo</h3>
         <button onclick="closeAddExistingToOrganizerModal()" class="text-lb-text hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p class="text-xs text-lb-text">Toca las portadas para incluirlas o quitarlas de este organizador:</p>
+      <div class="relative">
+        <input id="add-to-org-search" type="text" oninput="renderAddExistingGrid()" placeholder="Filtrar obras por título..." class="w-full h-9 pl-8 pr-3 rounded-xl bg-[#14181c] border border-lb-border text-white text-xs focus:outline-none focus:border-lb-blue" />
+        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-lb-text text-xs"></i>
+      </div>
       <div id="add-to-org-grid" class="grid grid-cols-3 sm:grid-cols-5 gap-3 overflow-y-auto p-1 flex-1"></div>
       <div class="flex justify-end pt-2 border-t border-lb-border">
-        <button onclick="closeAddExistingToOrganizerModal()" class="px-5 py-2 rounded-xl bg-lb-green text-black font-bold text-xs">Listo</button>
+        <button onclick="closeAddExistingToOrganizerModal()" class="px-5 py-2 rounded-xl bg-lb-green text-black font-extrabold text-xs">Listo</button>
       </div>
     </div>
   </div>
 
   <!-- ========================================================= -->
-  <!-- MODAL 4: RESPALDO JSON Y ALMACENAMIENTO OFFLINE           -->
+  <!-- MODAL 4: RESPALDO OFFLINE (.JSON) Y ESTADÍSTICAS          -->
   <!-- ========================================================= -->
   <div id="modal-backup" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-lb-surface border border-lb-border rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between border-b border-lb-border pb-3">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-shield-halved text-lb-blue text-lg"></i>
-          <h3 class="text-base font-extrabold text-white">Respaldo Offline y Datos</h3>
+          <h3 class="text-base font-extrabold text-white">Respaldo Offline y Almacenamiento</h3>
         </div>
         <button onclick="closeBackupModal()" class="text-lb-text hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -950,14 +1087,14 @@
       <div class="bg-[#14181c] p-3.5 rounded-xl border border-lb-border space-y-1.5 text-xs">
         <div class="flex items-center justify-between">
           <span class="text-lb-text">Base de datos local:</span>
-          <span class="font-bold text-lb-green">MediaVaultOfflineDB (Activo)</span>
+          <span class="font-bold text-lb-green">MediaVaultOfflineDB (v1)</span>
         </div>
         <div class="flex items-center justify-between">
           <span class="text-lb-text">Obras guardadas:</span>
           <span id="backup-stats-items" class="font-bold text-white">0</span>
         </div>
         <div class="flex items-center justify-between">
-          <span class="text-lb-text">Organizadores / Franquicias:</span>
+          <span class="text-lb-text">Franquicias / Organizadores:</span>
           <span id="backup-stats-orgs" class="font-bold text-white">0</span>
         </div>
         <div class="flex items-center justify-between">
@@ -984,7 +1121,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE CONFIRMACIÓN SEGURO (Reemplaza confirm()) -->
+  <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO (Sin confirm() nativo) -->
   <div id="modal-confirm" class="fixed inset-0 z-[60] hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-lb-surface border border-lb-border rounded-2xl max-w-sm w-full p-5 space-y-3.5 shadow-2xl">
       <h3 id="confirm-modal-title" class="text-sm font-extrabold text-white">Confirmar acción</h3>
@@ -996,12 +1133,12 @@
     </div>
   </div>
 
-  <!-- CONTENEDOR DE NOTIFICACIONES TOAST -->
+  <!-- TOASTS -->
   <div id="toast-container" class="fixed bottom-4 right-4 z-[70] flex flex-col gap-2 pointer-events-none max-w-[90vw]"></div>
 
   <script>
     /********************************************************************
-     * 1. CONSTANTES DE FORMATOS Y ESTADO GLOBAL (COMPATIBLE 100%)
+     * 1. CONFIGURACIÓN DE FORMATOS, ESTADOS Y ESTADO GLOBAL
      ********************************************************************/
     const FORMATS = [
       { id: 'libros',      name: 'Libros',          singular: 'Libro',         icon: 'fa-book-open', accent: '#00e054' },
@@ -1013,34 +1150,65 @@
     ];
 
     const STATUS_MAP = {
-      all:       { label: 'Todos',      icon: 'fa-border-all',     color: 'text-white' },
-      backlog:   { label: 'En espera',  icon: 'fa-hourglass-half', color: 'text-lb-orange' },
-      playing:   { label: 'En curso',   icon: 'fa-play',           color: 'text-lb-blue' },
-      completed: { label: 'Completado', icon: 'fa-check',          color: 'text-lb-green' },
-      dropped:   { label: 'Abandonado', icon: 'fa-ban',            color: 'text-red-400' }
+      all:       { label: 'Todos',      icon: 'fa-border-all',     color: 'text-white',     dot: 'bg-white' },
+      backlog:   { label: 'En espera',  icon: 'fa-hourglass-half', color: 'text-lb-blue',   dot: 'bg-lb-blue' },
+      playing:   { label: 'En curso',   icon: 'fa-play',           color: 'text-lb-orange', dot: 'bg-lb-orange' },
+      completed: { label: 'Completado', icon: 'fa-check',          color: 'text-lb-green',  dot: 'bg-lb-green' },
+      dropped:   { label: 'Abandonado', icon: 'fa-ban',            color: 'text-red-400',   dot: 'bg-red-500' }
     };
 
+    const TIER_SIZE_CONFIG = {
+      compact: {
+        thumb: 'w-[44px] h-[66px] sm:w-[54px] sm:h-[81px]',
+        label: 'w-11 sm:w-16 text-xs sm:text-base',
+        rowMin: 'min-h-[76px] sm:min-h-[92px]',
+        container: 'p-1.5 gap-1.5'
+      },
+      normal: {
+        thumb: 'w-[56px] h-[84px] sm:w-[68px] sm:h-[102px]',
+        label: 'w-14 sm:w-20 text-sm sm:text-lg',
+        rowMin: 'min-h-[96px] sm:min-h-[114px]',
+        container: 'p-2 gap-2'
+      },
+      large: {
+        thumb: 'w-[72px] h-[108px] sm:w-[84px] sm:h-[126px]',
+        label: 'w-16 sm:w-24 text-base sm:text-xl',
+        rowMin: 'min-h-[120px] sm:min-h-[138px]',
+        container: 'p-2.5 gap-2'
+      }
+    };
+
+    // Estado persistente compatible con versiones previas
     let appState = {
       items: [],
       organizers: [],
       tierLists: [],
+      apiKeys: {},
       settings: {
-        hideOrganizedInFormatGrid: false
+        hideOrganizedInFormatGrid: false,
+        tierPosterSize: 'compact'
       }
     };
 
-    // Estado de navegación y UI
-    let currentMainTab = 'catalog';
-    let currentFormatId = null;
-    let currentStatusFilter = 'all';
-    let currentOrganizerId = null;
+    // Estado de navegación en memoria
+    let currentMainTab = 'catalog';           // 'catalog' | 'franchises' | 'tierlists'
+    let currentFormatId = null;               // null o id de FORMATS cuando se abre un formato
+    let currentOrganizerId = null;            // null o id de organizador en vista enfocada
+    let organizerReturnContext = { tab: 'franchises', formatId: null };
+
+    let currentFormatStatusFilter = 'all';
+    let currentOrgStatusFilter = 'all';
+    let currentFranchiseFilter = 'all';       // 'all' | 'mixed' | 'format'
+    let formatSagasCollapsed = false;
     let reorderModeActive = false;
 
+    // Estado de modales y edición
     let editingItemId = null;
     let editingItemRating = 0;
     let reselectingCoverForItemId = null;
-    let pendingOrganizerScope = 'format';
+    let addingToOrganizerId = null;
 
+    // Estado de Tier Lists
     let currentTierListId = null;
     let selectedTierCoverId = null;
     let draggedTierCoverId = null;
@@ -1056,7 +1224,7 @@
     let pendingConfirmCallback = null;
 
     /********************************************************************
-     * 2. BASE DE DATOS OFFLINE (EXACTA PARA RECUPERAR DATOS PREVIOS)
+     * 2. PERSISTENCIA OFFLINE (COMPATIBILIDAD EXACTA CON VERSIÓN PREVIA)
      ********************************************************************/
     const DB_NAME = 'MediaVaultOfflineDB';
     const DB_VERSION = 1;
@@ -1090,17 +1258,16 @@
       } catch (err) {
         console.error('Error guardando en IndexedDB:', err);
       }
-      // Respaldo secundario seguro en localStorage (ignora QuotaExceededError)
       try {
         localStorage.setItem(LS_BACKUP_KEY, JSON.stringify(appState));
       } catch (e) {}
     }
 
     /**
-     * Normaliza campos opcionales sin borrar ni alterar ningún dato existente.
+     * Hidrata los datos cargados preservando absolutamente todos los campos del usuario.
      */
     function hydrateSavedState(rawData) {
-      const normalizedItems = Array.isArray(rawData.items)
+      const items = Array.isArray(rawData.items)
         ? rawData.items.map(it => ({
             ...it,
             status: it.status || 'backlog',
@@ -1108,19 +1275,19 @@
             notes: typeof it.notes === 'string' ? it.notes : '',
             date: typeof it.date === 'string' ? it.date : '',
             platform: typeof it.platform === 'string' ? it.platform : '',
-            edition: typeof it.edition === 'string' ? it.edition : '',
-            canon: typeof it.canon === 'string' ? it.canon : ''
+            version: typeof it.version === 'string' ? it.version : (typeof it.edition === 'string' ? it.edition : '')
           }))
         : [];
 
-      const normalizedOrgs = Array.isArray(rawData.organizers)
+      const organizers = Array.isArray(rawData.organizers)
         ? rawData.organizers.map(o => ({
             ...o,
+            format: o.format || 'mixed',
             itemIds: Array.isArray(o.itemIds) ? o.itemIds : []
           }))
         : [];
 
-      const normalizedTiers = Array.isArray(rawData.tierLists)
+      const tierLists = Array.isArray(rawData.tierLists)
         ? rawData.tierLists.map(t => ({
             ...t,
             rows: Array.isArray(t.rows)
@@ -1134,18 +1301,20 @@
 
       return {
         ...rawData,
-        items: normalizedItems,
-        organizers: normalizedOrgs,
-        tierLists: normalizedTiers,
+        items,
+        organizers,
+        tierLists,
+        apiKeys: rawData.apiKeys && typeof rawData.apiKeys === 'object' ? rawData.apiKeys : {},
         settings: {
           hideOrganizedInFormatGrid: false,
+          tierPosterSize: 'compact',
           ...(rawData.settings || {})
         }
       };
     }
 
     async function loadStateFromDB() {
-      // 1. Intentar cargar desde IndexedDB: MediaVaultOfflineDB -> vault_state -> 'main'
+      // 1. Leer IndexedDB ('MediaVaultOfflineDB' -> 'vault_state' -> 'main')
       try {
         const db = await openVaultDB();
         const data = await new Promise((resolve, reject) => {
@@ -1159,10 +1328,10 @@
           return true;
         }
       } catch (err) {
-        console.warn('No se pudo leer IndexedDB, probando localStorage...', err);
+        console.warn('Error leyendo IndexedDB, probando respaldo localStorage...', err);
       }
 
-      // 2. Fallback desde localStorage: 'mediavault_backup_state'
+      // 2. Fallback localStorage ('mediavault_backup_state')
       try {
         const raw = localStorage.getItem(LS_BACKUP_KEY);
         if (raw) {
@@ -1178,7 +1347,7 @@
     }
 
     /********************************************************************
-     * 3. PORTADAS OFFLINE (CANVAS WEBP BASE64) Y PROGRESO
+     * 3. UTILIDADES VISUALES: PORTADAS OFFLINE, ABANICO Y PROGRESO
      ********************************************************************/
     function createStylizedOfflinePoster(title, subtitle, bgTop, bgBottom, accentColor, iconSymbol) {
       const canvas = document.createElement('canvas');
@@ -1279,8 +1448,8 @@
     }
 
     /**
-     * Calcula estadísticas y porcentaje de completado excluyendo 'dropped' (Abandonado):
-     * active = backlog + playing + completed
+     * Calcula estadísticas y porcentaje de completado:
+     * active = backlog + playing + completed (excluye dropped)
      * percent = active > 0 ? Math.round((completed / active) * 100) : 0
      */
     function computeProgressStats(itemsList) {
@@ -1294,11 +1463,11 @@
     }
 
     /**
-     * Renderiza el abanico de 3 portadas con z-index corregido:
-     * - [0] (más reciente): CENTRO y AL FRENTE (z-index: 20)
-     * - [1] (2ª más reciente): IZQUIERDA -10deg (z-index: 10)
-     * - [2] (3ª más reciente): DERECHA +10deg (z-index: 10)
-     * - Siluetas vacías: z-index: 0 (nunca tapan una portada real)
+     * Renderiza el abanico de 3 portadas con z-index garantizado:
+     * - [0] más reciente: CENTRO y AL FRENTE (z-index: 30)
+     * - [1] 2ª más reciente: IZQUIERDA -10deg (z-index: 20)
+     * - [2] 3ª más reciente: DERECHA +10deg (z-index: 15)
+     * - Siluetas vacías: z-index: 1 (jamás tapan una portada real)
      */
     function renderFanStackHTML(itemsList, fallbackIcon, isMini = false) {
       const recent3 = [...itemsList]
@@ -1306,9 +1475,9 @@
         .slice(0, 3);
 
       const slots = [
-        { item: recent3[0] || null, pos: isMini ? 'mini-pos-center' : 'fan-pos-center', zReal: 20 },
-        { item: recent3[1] || null, pos: isMini ? 'mini-pos-left'   : 'fan-pos-left',   zReal: 10 },
-        { item: recent3[2] || null, pos: isMini ? 'mini-pos-right'  : 'fan-pos-right',  zReal: 10 }
+        { item: recent3[0] || null, pos: isMini ? 'mini-pos-center' : 'fan-pos-center', zReal: 30 },
+        { item: recent3[1] || null, pos: isMini ? 'mini-pos-left'   : 'fan-pos-left',   zReal: 20 },
+        { item: recent3[2] || null, pos: isMini ? 'mini-pos-right'  : 'fan-pos-right',  zReal: 15 }
       ];
 
       const cardCls = isMini ? 'mini-stack-card' : 'fan-item';
@@ -1325,13 +1494,26 @@
               `;
             }
             return `
-              <div class="${cardCls} is-placeholder ${slot.pos} flex items-center justify-center text-lb-text/30" style="z-index: 0;">
+              <div class="${cardCls} is-placeholder ${slot.pos} flex items-center justify-center text-lb-text/30" style="z-index: 1;">
                 <i class="fa-solid ${fallbackIcon} ${isMini ? 'text-[10px] sm:text-xs' : 'text-base'}"></i>
               </div>
             `;
           }).join('')}
         </div>
       `;
+    }
+
+    function renderStarsInlineHTML(rating) {
+      if (!rating || rating <= 0) return '';
+      let html = '';
+      for (let s = 1; s <= 5; s++) {
+        if (rating >= s) {
+          html += '<i class="fa-solid fa-star text-lb-green text-[10px] sm:text-[11px]"></i>';
+        } else if (rating >= s - 0.5) {
+          html += '<i class="fa-solid fa-star-half-stroke text-lb-green text-[10px] sm:text-[11px]"></i>';
+        }
+      }
+      return `<span class="inline-flex items-center gap-[1px] flex-shrink-0" title="${rating.toFixed(1)} / 5">${html}</span>`;
     }
 
     function seedInitialDemoCatalog() {
@@ -1350,9 +1532,8 @@
           rating: 5,
           date: '2026-02-15',
           platform: 'Físico',
-          edition: 'Original',
-          canon: 'Canon',
-          notes: 'Toca "Cambiar Portada" para explorar decenas de ediciones reales.',
+          version: 'Original',
+          notes: 'Edición clásica ilustrada. Toca "Cambiar Portada" para ver portadas reales.',
           createdAt: Date.now() - 40000
         },
         {
@@ -1364,8 +1545,7 @@
           rating: 5.0,
           date: '2026-01-20',
           platform: 'PS5',
-          edition: 'Original',
-          canon: 'Canon',
+          version: 'Original',
           notes: 'Castillo invertido completado al 200.6%.',
           createdAt: Date.now() - 30000
         },
@@ -1378,9 +1558,8 @@
           rating: 4.5,
           date: '2026-01-10',
           platform: '4K UHD',
-          edition: 'Original',
-          canon: 'Canon',
-          notes: 'Dirección de arte y vestuario espectaculares.',
+          version: "Director's Cut",
+          notes: 'Dirección de arte y vestuario memorables.',
           createdAt: Date.now() - 20000
         },
         {
@@ -1392,8 +1571,7 @@
           rating: 4.0,
           date: '2026-02-10',
           platform: 'Streaming',
-          edition: 'Original',
-          canon: 'Spin-off',
+          version: 'Original',
           notes: 'Viendo la segunda temporada.',
           createdAt: Date.now() - 10000
         }
@@ -1443,30 +1621,89 @@
     }
 
     /********************************************************************
-     * 4. VISTA 1: ESTANTERÍA DE FORMATOS Y FRANQUICIAS MIXTAS
+     * 4. NAVEGACIÓN ENTRE LAS 3 PESTAÑAS PRINCIPALES Y VISTAS HIJAS
+     ********************************************************************/
+    function hideAllMainSections() {
+      document.getElementById('view-home').classList.add('hidden');
+      document.getElementById('view-franchises').classList.add('hidden');
+      document.getElementById('view-format').classList.add('hidden');
+      document.getElementById('view-organizer').classList.add('hidden');
+      document.getElementById('view-tierlists').classList.add('hidden');
+      document.getElementById('tier-quick-assign-bar').classList.add('hidden');
+    }
+
+    function updateTopNavStyles(activeTab) {
+      const baseInactive = 'flex-1 md:flex-initial justify-center px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-lb-text hover:text-white';
+      const baseActive = 'flex-1 md:flex-initial justify-center px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-lb-elevated text-white shadow';
+
+      document.getElementById('nav-catalog').className = activeTab === 'catalog' ? baseActive : baseInactive;
+      document.getElementById('nav-franchises').className = activeTab === 'franchises' ? baseActive : baseInactive;
+      document.getElementById('nav-tierlists').className = activeTab === 'tierlists' ? baseActive : baseInactive;
+    }
+
+    function switchMainTab(tab, resetSubViews = false) {
+      currentMainTab = tab;
+      if (resetSubViews) {
+        currentFormatId = null;
+        currentOrganizerId = null;
+        reorderModeActive = false;
+        selectedTierCoverId = null;
+      }
+
+      updateTopNavStyles(tab);
+      hideAllMainSections();
+
+      if (tab === 'catalog') {
+        if (currentOrganizerId) {
+          document.getElementById('view-organizer').classList.remove('hidden');
+          renderOrganizerFocusedView();
+        } else if (currentFormatId) {
+          document.getElementById('view-format').classList.remove('hidden');
+          renderFormatView();
+        } else {
+          document.getElementById('view-home').classList.remove('hidden');
+          renderHomeFormats();
+        }
+      } else if (tab === 'franchises') {
+        if (currentOrganizerId) {
+          document.getElementById('view-organizer').classList.remove('hidden');
+          renderOrganizerFocusedView();
+        } else {
+          document.getElementById('view-franchises').classList.remove('hidden');
+          renderFranchisesTab();
+        }
+      } else if (tab === 'tierlists') {
+        document.getElementById('view-tierlists').classList.remove('hidden');
+        populateTierOrganizerFilter();
+        renderTierListView();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /********************************************************************
+     * 5. TAB 1 — ESTANTERÍA (SOLO 6 FORMATOS + BÚSQUEDA GLOBAL)
      ********************************************************************/
     function renderHomeFormats() {
       const grid = document.getElementById('formats-grid');
       const statsBar = document.getElementById('global-stats-bar');
-
       const gStats = computeProgressStats(appState.items);
 
       statsBar.innerHTML = `
         <div class="flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-lb-orange"></span>
+          <span class="w-2 h-2 rounded-full bg-lb-blue"></span>
           <span class="text-lb-text">En espera:</span>
           <strong class="text-white">${gStats.backlog}</strong>
         </div>
         <span class="text-lb-border">|</span>
         <div class="flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-lb-blue"></span>
+          <span class="w-2 h-2 rounded-full bg-lb-orange"></span>
           <span class="text-lb-text">En curso:</span>
           <strong class="text-white">${gStats.playing}</strong>
         </div>
         <span class="text-lb-border">|</span>
         <div class="flex items-center gap-1">
           <span class="w-2 h-2 rounded-full bg-lb-green"></span>
-          <span class="text-lb-text">Completados:</span>
+          <span class="text-lb-text">Completadas:</span>
           <strong class="text-white">${gStats.completed}</strong>
         </div>
         <span class="text-lb-border">|</span>
@@ -1476,6 +1713,35 @@
         </div>
       `;
 
+      // Buscador global rápido en Estantería
+      const searchInput = document.getElementById('home-global-search-input');
+      const clearBtn = document.getElementById('home-global-search-clear');
+      const resultsSection = document.getElementById('home-global-results-section');
+      const resultsGrid = document.getElementById('home-global-results-grid');
+      const resultsTitle = document.getElementById('home-global-results-title');
+      const q = (searchInput?.value || '').trim().toLowerCase();
+
+      if (q) {
+        clearBtn.classList.remove('hidden');
+        const matches = appState.items.filter(it =>
+          (it.title || '').toLowerCase().includes(q) ||
+          (it.platform || '').toLowerCase().includes(q) ||
+          (it.version || '').toLowerCase().includes(q) ||
+          (it.notes || '').toLowerCase().includes(q)
+        );
+        resultsSection.classList.remove('hidden');
+        resultsTitle.textContent = `Resultados para "${searchInput.value.trim()}" (${matches.length})`;
+        if (matches.length === 0) {
+          resultsGrid.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-lb-text bg-lb-surface/40 rounded-xl border border-dashed border-lb-border">No hay coincidencias en tu colección.</div>`;
+        } else {
+          resultsGrid.innerHTML = matches.map((item, idx) => renderLetterboxdCardHTML(item, idx, false)).join('');
+        }
+      } else {
+        clearBtn.classList.add('hidden');
+        resultsSection.classList.add('hidden');
+      }
+
+      // Render de las 6 carpetas de formatos
       grid.innerHTML = FORMATS.map(fmt => {
         const fmtItems = appState.items.filter(i => i.format === fmt.id);
         const stats = computeProgressStats(fmtItems);
@@ -1500,11 +1766,10 @@
               ${renderFanStackHTML(fmtItems, fmt.icon, false)}
             </div>
 
-            <!-- Barra de progreso naranja-a-verde -->
             <div class="mt-2 pt-2 border-t border-lb-border/70 space-y-1.5">
               <div class="flex items-center justify-between gap-1 text-[10px] sm:text-[11px]">
                 <span class="text-lb-text truncate">
-                  <strong class="text-lb-orange">${stats.backlog}</strong> Pend. · <strong class="text-lb-green">${stats.completed}</strong> Compl.
+                  <strong class="text-lb-blue">${stats.backlog}</strong> En espera · <strong class="text-lb-green">${stats.completed}</strong> Compl.
                 </span>
                 <span class="font-extrabold text-lb-green flex-shrink-0">${stats.percent}%</span>
               </div>
@@ -1515,47 +1780,105 @@
           </div>
         `;
       }).join('');
+    }
 
-      // Renderizar Organizadores Mixtos en filas de 3 con búsqueda en vivo
-      const mixedGrid = document.getElementById('mixed-organizers-grid');
-      const query = (document.getElementById('home-org-search-input')?.value || '').trim().toLowerCase();
-      const allMixedOrgs = appState.organizers.filter(o => o.format === 'mixed');
-      const filteredMixedOrgs = query
-        ? allMixedOrgs.filter(o => (o.name || '').toLowerCase().includes(query))
-        : allMixedOrgs;
+    /********************************************************************
+     * 6. TAB 2 — FRANQUICIAS Y SAGAS (DEDICADA)
+     ********************************************************************/
+    function setFranchiseFilter(filterKey) {
+      currentFranchiseFilter = filterKey;
+      renderFranchisesTab();
+    }
 
-      document.getElementById('mixed-orgs-count-badge').textContent = allMixedOrgs.length;
+    function renderFranchisesTab() {
+      const pills = document.getElementById('franchises-filter-pills');
+      const filterDefs = [
+        { key: 'all',    label: 'Todas' },
+        { key: 'mixed',  label: 'Franquicias Mixtas' },
+        { key: 'format', label: 'Por Formato' }
+      ];
 
-      if (filteredMixedOrgs.length === 0) {
-        mixedGrid.innerHTML = `
-          <div class="col-span-3 bg-lb-surface/40 border border-dashed border-lb-border rounded-xl p-4 text-center text-xs text-lb-text">
-            ${query ? `No se encontraron franquicias con "${escapeHtml(query)}".` : 'Aún no has creado franquicias mixtas. Toca "+ Nueva Franquicia" para agrupar libros, juegos y películas.'}
+      pills.innerHTML = filterDefs.map(f => {
+        const active = currentFranchiseFilter === f.key;
+        return `
+          <button onclick="setFranchiseFilter('${f.key}')"
+                  class="px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                    active
+                      ? 'bg-lb-elevated text-white border-lb-orange shadow'
+                      : 'bg-lb-surface text-lb-text hover:text-white border-lb-border'
+                  }">
+            ${f.label}
+          </button>
+        `;
+      }).join('');
+
+      const query = (document.getElementById('franchises-search-input')?.value || '').trim().toLowerCase();
+      let orgs = [...appState.organizers];
+
+      if (currentFranchiseFilter === 'mixed') {
+        orgs = orgs.filter(o => o.format === 'mixed');
+      } else if (currentFranchiseFilter === 'format') {
+        orgs = orgs.filter(o => o.format && o.format !== 'mixed');
+      }
+
+      if (query) {
+        orgs = orgs.filter(o => (o.name || '').toLowerCase().includes(query));
+      }
+
+      document.getElementById('franchises-count-badge').textContent = orgs.length;
+
+      const grid = document.getElementById('franchises-grid');
+      if (orgs.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-3 bg-lb-surface/40 border border-dashed border-lb-border rounded-2xl p-8 text-center space-y-2">
+            <i class="fa-solid fa-folder-tree text-2xl text-lb-text/50"></i>
+            <p class="text-xs sm:text-sm font-bold text-white">No hay franquicias o sagas aquí</p>
+            <p class="text-xs text-lb-text">${query ? `Sin resultados para "${escapeHtml(query)}".` : 'Crea tu primera franquicia para agrupar entregas con seguimiento de progreso.'}</p>
+            <button onclick="openNewOrganizerModal('mixed')" class="mt-2 px-4 py-2 rounded-xl bg-lb-orange text-black font-extrabold text-xs inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-folder-plus"></i>
+              <span>+ Nueva Franquicia</span>
+            </button>
           </div>
         `;
       } else {
-        mixedGrid.innerHTML = filteredMixedOrgs.map(org => renderOrganizerCompactCard3Col(org)).join('');
+        grid.innerHTML = orgs.map(org => renderOrganizerCard3Col(org, 'franchises')).join('');
       }
     }
 
-    function renderOrganizerCompactCard3Col(org) {
+    function renderOrganizerCard3Col(org, sourceContext) {
       const validItems = (org.itemIds || [])
         .map(id => appState.items.find(i => i.id === id))
         .filter(Boolean);
       const stats = computeProgressStats(validItems);
+      const fmtObj = org.format && org.format !== 'mixed'
+        ? FORMATS.find(f => f.id === org.format)
+        : null;
 
       return `
-        <div onclick="openOrganizerFolder('${org.id}')"
-             class="org-card cursor-pointer group bg-[#181d23] hover:bg-lb-elevated p-2 sm:p-3 rounded-xl border border-lb-border hover:border-lb-blue/70 transition-all flex flex-col justify-between gap-2 shadow min-w-0">
-          <!-- Mini abanico corregido -->
+        <div onclick="openOrganizerFocused('${org.id}', '${sourceContext}')"
+             class="org-card cursor-pointer group bg-lb-surface hover:bg-lb-elevated p-2 sm:p-3 rounded-xl border border-lb-border hover:border-lb-orange/70 transition-all flex flex-col justify-between gap-2 shadow min-w-0">
+          <!-- Abanico corregido -->
           <div class="w-full py-1 rounded-lg bg-[#14181c]/85 border border-white/5 overflow-hidden">
-            ${renderFanStackHTML(validItems, 'fa-layer-group', true)}
+            ${renderFanStackHTML(validItems, fmtObj ? fmtObj.icon : 'fa-layer-group', true)}
           </div>
 
-          <!-- Nombre, conteo y barra de progreso -->
+          <!-- Nombre, insignia de formato si aplica, conteo y barra de progreso -->
           <div class="min-w-0 space-y-1">
-            <h4 class="text-[11px] sm:text-xs font-extrabold text-white truncate group-hover:text-lb-blue transition-colors" title="${escapeHtml(org.name)}">
-              ${escapeHtml(org.name)}
-            </h4>
+            <div class="flex items-center justify-between gap-1 min-w-0">
+              <h4 class="text-[11px] sm:text-xs font-extrabold text-white truncate group-hover:text-lb-orange transition-colors" title="${escapeHtml(org.name)}">
+                ${escapeHtml(org.name)}
+              </h4>
+            </div>
+
+            ${fmtObj ? `
+              <div>
+                <span class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#14181c] border border-white/10 text-lb-text max-w-full truncate">
+                  <i class="fa-solid ${fmtObj.icon}" style="color: ${fmtObj.accent}"></i>
+                  <span class="truncate">${fmtObj.name}</span>
+                </span>
+              </div>
+            ` : ''}
+
             <div class="flex items-center justify-between gap-1 text-[10px]">
               <span class="text-lb-text truncate">${stats.total} ${stats.total === 1 ? 'obra' : 'obras'}</span>
               <span class="font-extrabold text-lb-green flex-shrink-0">${stats.percent}%</span>
@@ -1569,61 +1892,26 @@
     }
 
     /********************************************************************
-     * 5. VISTA 2: INTERIOR DE FORMATO / ORGANIZADOR + REORDENAMIENTO
+     * 7. INTERIOR DE FORMATO (DESDE ESTANTERÍA)
      ********************************************************************/
     function openFormatFolder(formatId) {
+      currentMainTab = 'catalog';
       currentFormatId = formatId;
       currentOrganizerId = null;
-      currentStatusFilter = 'all';
+      currentFormatStatusFilter = 'all';
       reorderModeActive = false;
-      updateReorderToggleButton();
 
-      document.getElementById('view-home').classList.add('hidden');
-      document.getElementById('view-tierlists').classList.add('hidden');
+      updateTopNavStyles('catalog');
+      hideAllMainSections();
       document.getElementById('view-format').classList.remove('hidden');
 
       renderFormatView();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function openOrganizerFolder(orgId) {
-      const org = appState.organizers.find(o => o.id === orgId);
-      if (!org) return;
-
-      currentOrganizerId = org.id;
-      currentFormatId = org.format !== 'mixed' ? org.format : 'mixed';
-      currentStatusFilter = 'all';
-      reorderModeActive = false;
-      updateReorderToggleButton();
-
-      document.getElementById('view-home').classList.add('hidden');
-      document.getElementById('view-tierlists').classList.add('hidden');
-      document.getElementById('view-format').classList.remove('hidden');
-
+    function toggleFormatSagasCollapsed() {
+      formatSagasCollapsed = !formatSagasCollapsed;
       renderFormatView();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function closeOrganizerView() {
-      if (currentFormatId === 'mixed') {
-        navigateHome();
-      } else {
-        currentOrganizerId = null;
-        reorderModeActive = false;
-        updateReorderToggleButton();
-        renderFormatView();
-      }
-    }
-
-    function navigateHome() {
-      currentFormatId = null;
-      currentOrganizerId = null;
-      reorderModeActive = false;
-      updateReorderToggleButton();
-      switchMainTab('catalog');
-      document.getElementById('view-format').classList.add('hidden');
-      document.getElementById('view-home').classList.remove('hidden');
-      renderHomeFormats();
     }
 
     function toggleHideOrganized(checked) {
@@ -1633,30 +1921,10 @@
     }
 
     function setFormatStatusFilter(statusKey) {
-      currentStatusFilter = statusKey;
+      currentFormatStatusFilter = statusKey;
       renderFormatView();
     }
 
-    function toggleReorderMode() {
-      reorderModeActive = !reorderModeActive;
-      updateReorderToggleButton();
-      renderFormatView();
-    }
-
-    function updateReorderToggleButton() {
-      const btn = document.getElementById('btn-toggle-reorder');
-      if (!btn) return;
-      if (reorderModeActive) {
-        btn.className = 'px-3 py-2 rounded-xl bg-lb-orange text-black border border-lb-orange font-extrabold text-xs flex items-center gap-1.5 shadow transition-colors';
-      } else {
-        btn.className = 'px-3 py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border font-bold text-xs flex items-center gap-1.5 transition-colors';
-      }
-    }
-
-    /**
-     * Ordena obras dentro de un formato respetando item.order (si existe),
-     * y cayendo a createdAt desc para obras sin orden manual asignado.
-     */
     function getOrderedFormatItems(formatId) {
       return appState.items
         .filter(i => i.format === formatId)
@@ -1670,95 +1938,64 @@
         });
     }
 
-    function renderStarsInlineHTML(rating) {
-      if (!rating || rating <= 0) return '';
-      const full = Math.floor(rating);
-      const half = (rating - full) >= 0.5;
-      return `<span class="text-[11px] sm:text-xs font-black tracking-tight text-lb-green leading-none">${'★'.repeat(full)}${half ? '½' : ''}</span>`;
-    }
-
     function renderFormatView() {
-      const isMixedOrg = currentFormatId === 'mixed';
-      const fmtObj = FORMATS.find(f => f.id === currentFormatId) || {
-        id: 'mixed',
-        name: 'Franquicias Mixtas',
-        icon: 'fa-folder-tree',
-        accent: '#ff8000'
-      };
+      const fmtObj = FORMATS.find(f => f.id === currentFormatId) || FORMATS[0];
+      updateReorderToggleButtons();
 
       document.getElementById('format-header-title').innerHTML = `
         <i class="fa-solid ${fmtObj.icon}" style="color: ${fmtObj.accent}"></i>
         <span class="truncate">${fmtObj.name}</span>
       `;
-
       document.getElementById('toggle-hide-organized').checked = !!appState.settings.hideOrganizedInFormatGrid;
-      document.getElementById('wrap-hide-organized').classList.toggle('hidden', !!currentOrganizerId);
 
-      // Organizadores de esta carpeta en filas de 3 + búsqueda
-      const orgRow = document.getElementById('format-organizers-row');
-      const orgQuery = (document.getElementById('format-org-search-input')?.value || '').trim().toLowerCase();
-      const allFormatOrgs = isMixedOrg
-        ? appState.organizers.filter(o => o.format === 'mixed')
-        : appState.organizers.filter(o => o.format === currentFormatId);
+      // Sagas específicas de este formato (compacto y plegable)
+      const formatOrgs = appState.organizers.filter(o => o.format === currentFormatId);
+      document.getElementById('format-sagas-heading').textContent = `Sagas en ${fmtObj.name}`;
+      document.getElementById('format-sagas-count').textContent = formatOrgs.length;
 
-      const filteredFormatOrgs = orgQuery
-        ? allFormatOrgs.filter(o => (o.name || '').toLowerCase().includes(orgQuery))
-        : allFormatOrgs;
+      const sagasBody = document.getElementById('format-sagas-body');
+      const sagasChevron = document.getElementById('format-sagas-chevron');
 
-      document.getElementById('format-orgs-count-badge').textContent = allFormatOrgs.length;
-
-      if (filteredFormatOrgs.length === 0) {
-        orgRow.innerHTML = `
-          <div class="col-span-3 text-xs text-lb-text py-2 text-center">
-            ${orgQuery ? `Sin resultados para "${escapeHtml(orgQuery)}".` : 'No hay organizadores en esta carpeta aún. Crea uno para agrupar sagas en filas de 3.'}
-          </div>
-        `;
+      if (formatSagasCollapsed) {
+        sagasBody.classList.add('hidden');
+        sagasChevron.classList.add('-rotate-90');
       } else {
-        orgRow.innerHTML = filteredFormatOrgs.map(o => renderOrganizerCompactCard3Col(o)).join('');
-      }
-
-      // Calcular obras base (del organizador activo o del formato)
-      const activeOrgBanner = document.getElementById('active-organizer-banner');
-      let baseItems = [];
-
-      if (currentOrganizerId) {
-        const org = appState.organizers.find(o => o.id === currentOrganizerId);
-        if (org) {
-          activeOrgBanner.classList.remove('hidden');
-          document.getElementById('active-organizer-name').textContent = org.name;
-          baseItems = (org.itemIds || [])
-            .map(id => appState.items.find(i => i.id === id))
-            .filter(Boolean);
-        }
-      } else {
-        activeOrgBanner.classList.add('hidden');
-        baseItems = getOrderedFormatItems(currentFormatId);
-
-        if (appState.settings.hideOrganizedInFormatGrid) {
-          const groupedIds = new Set();
-          allFormatOrgs.forEach(o => (o.itemIds || []).forEach(id => groupedIds.add(id)));
-          baseItems = baseItems.filter(i => !groupedIds.has(i.id));
+        sagasBody.classList.remove('hidden');
+        sagasChevron.classList.remove('-rotate-90');
+        if (formatOrgs.length === 0) {
+          sagasBody.innerHTML = `<div class="col-span-3 text-xs text-lb-text py-1.5 text-center">No hay sagas exclusivas de ${fmtObj.name} aún.</div>`;
+        } else {
+          sagasBody.innerHTML = formatOrgs.map(o => renderOrganizerCard3Col(o, 'format')).join('');
         }
       }
 
-      // Actualizar barra de progreso del contexto abierto
-      const progStats = computeProgressStats(baseItems);
+      // Obras de este formato
+      let baseItems = getOrderedFormatItems(currentFormatId);
+      if (appState.settings.hideOrganizedInFormatGrid) {
+        const groupedIds = new Set();
+        appState.organizers
+          .filter(o => o.format === currentFormatId || o.format === 'mixed')
+          .forEach(o => (o.itemIds || []).forEach(id => groupedIds.add(id)));
+        baseItems = baseItems.filter(i => !groupedIds.has(i.id));
+      }
+
+      // Progreso
+      const stats = computeProgressStats(baseItems);
       document.getElementById('format-progress-detail').textContent =
-        `${progStats.backlog} en espera · ${progStats.playing} en curso · ${progStats.completed} completados`;
-      document.getElementById('format-progress-pct').textContent = `${progStats.percent}%`;
-      document.getElementById('format-progress-fill').style.width = `${progStats.percent}%`;
+        `${stats.backlog} en espera · ${stats.playing} en curso · ${stats.completed} completadas`;
+      document.getElementById('format-progress-pct').textContent = `${stats.percent}%`;
+      document.getElementById('format-progress-fill').style.width = `${stats.percent}%`;
 
-      // Píldoras de estado con contadores
-      const statusCounts = {
+      // Píldoras de estado
+      const counts = {
         all: baseItems.length,
-        backlog: progStats.backlog,
-        playing: progStats.playing,
-        completed: progStats.completed,
-        dropped: progStats.dropped
+        backlog: stats.backlog,
+        playing: stats.playing,
+        completed: stats.completed,
+        dropped: stats.dropped
       };
-      const statusFilterBar = document.getElementById('status-filter-bar');
-      statusFilterBar.innerHTML = Object.entries(STATUS_MAP).map(([key, cfg]) => {
-        const active = currentStatusFilter === key;
+      document.getElementById('format-status-filter-bar').innerHTML = Object.entries(STATUS_MAP).map(([key, cfg]) => {
+        const active = currentFormatStatusFilter === key;
         return `
           <button onclick="setFormatStatusFilter('${key}')"
                   class="px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border ${
@@ -1768,106 +2005,277 @@
                   }">
             <i class="fa-solid ${cfg.icon} ${cfg.color}"></i>
             <span>${cfg.label}</span>
-            <span class="text-[10px] px-1.5 rounded-full bg-[#14181c] text-lb-text font-bold">${statusCounts[key]}</span>
+            <span class="text-[10px] px-1.5 rounded-full bg-[#14181c] text-lb-text font-bold">${counts[key]}</span>
           </button>
         `;
       }).join('');
 
-      let itemsToDisplay = baseItems;
-      if (currentStatusFilter !== 'all') {
-        itemsToDisplay = itemsToDisplay.filter(i => i.status === currentStatusFilter);
+      let displayed = baseItems;
+      if (currentFormatStatusFilter !== 'all') {
+        displayed = displayed.filter(i => i.status === currentFormatStatusFilter);
       }
 
-      document.getElementById('format-header-count').textContent = `${itemsToDisplay.length}`;
+      document.getElementById('format-header-count').textContent = `${displayed.length}`;
       document.getElementById('format-visible-hint').textContent =
-        itemsToDisplay.length === 1 ? 'Mostrando 1 obra' : `Mostrando ${itemsToDisplay.length} obras`;
+        displayed.length === 1 ? 'Mostrando 1 obra' : `Mostrando ${displayed.length} obras`;
 
-      const posterGrid = document.getElementById('clean-poster-grid');
-      const emptyState = document.getElementById('format-empty-state');
+      const grid = document.getElementById('format-poster-grid');
+      const empty = document.getElementById('format-empty-state');
 
-      if (itemsToDisplay.length === 0) {
-        posterGrid.innerHTML = '';
-        emptyState.classList.remove('hidden');
+      if (displayed.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
       } else {
-        emptyState.classList.add('hidden');
-        posterGrid.innerHTML = itemsToDisplay.map((item, index) => {
-          const statusDotColor =
-            item.status === 'completed' ? 'bg-lb-green' :
-            item.status === 'playing' ? 'bg-lb-blue' :
-            item.status === 'dropped' ? 'bg-red-500' : 'bg-lb-orange';
-
-          const statusTitle = (STATUS_MAP[item.status] || STATUS_MAP.backlog).label;
-          const starsHtml = renderStarsInlineHTML(item.rating);
-          const hasNotes = item.notes && item.notes.trim().length > 0;
-          const badgeParts = [];
-          if (item.platform) badgeParts.push(item.platform);
-          if (item.edition) badgeParts.push(item.edition);
-          const badgeLabel = badgeParts.join(' · ');
-
-          return `
-            <article class="lb-poster-item group"
-                     data-id="${item.id}"
-                     draggable="true"
-                     ondragstart="handleCardDragStart(event, '${item.id}')"
-                     ondragover="handleCardDragOver(event)"
-                     ondragleave="handleCardDragLeave(event)"
-                     ondrop="handleCardDrop(event, '${item.id}')"
-                     ondragend="handleCardDragEnd(event)"
-                     ontouchstart="handleCardTouchStart(event, '${item.id}')"
-                     ontouchmove="handleCardTouchMove(event)"
-                     ontouchend="handleCardTouchEnd()"
-                     onclick="if(!isTouchDraggingCard) openDetailsModal('${item.id}')">
-
-              <!-- PÓSTER LIMPIO 2:3 -->
-              <div class="poster-card cursor-pointer">
-                <img src="${item.coverData}" alt="${escapeHtml(item.title)}" loading="lazy" />
-                <span title="${statusTitle}" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full ${statusDotColor} ring-2 ring-[#14181c] shadow"></span>
-
-                ${reorderModeActive ? `
-                  <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-1.5 flex items-center justify-between gap-1" onclick="event.stopPropagation()">
-                    <button onclick="moveItemByStep('${item.id}', -1)" class="flex-1 h-7 rounded-lg bg-lb-elevated hover:bg-lb-green hover:text-black text-white text-xs font-black border border-white/15 flex items-center justify-center transition-colors">◀</button>
-                    <span class="text-[10px] font-extrabold text-white/90 px-1">#${index + 1}</span>
-                    <button onclick="moveItemByStep('${item.id}', 1)" class="flex-1 h-7 rounded-lg bg-lb-elevated hover:bg-lb-green hover:text-black text-white text-xs font-black border border-white/15 flex items-center justify-center transition-colors">▶</button>
-                  </div>
-                ` : (currentOrganizerId ? `
-                  <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between gap-1" onclick="event.stopPropagation()">
-                    <button onclick="moveItemByStep('${item.id}', -1)" class="px-2 py-0.5 rounded bg-black/80 hover:bg-lb-blue hover:text-black text-white text-[10px] font-bold">◀</button>
-                    <span class="text-[10px] font-bold text-white/90">#${index + 1}</span>
-                    <button onclick="moveItemByStep('${item.id}', 1)" class="px-2 py-0.5 rounded bg-black/80 hover:bg-lb-blue hover:text-black text-white text-[10px] font-bold">▶</button>
-                  </div>
-                ` : '')}
-              </div>
-
-              <!-- METADATOS ESTILO LETTERBOXD DEBAJO DEL PÓSTER (FUERA DE LA IMAGEN) -->
-              <div class="pt-1.5 px-0.5 flex flex-col gap-0.5 min-w-0">
-                <h4 class="text-[11px] sm:text-xs font-bold text-slate-100 truncate leading-snug" title="${escapeHtml(item.title)}">
-                  ${escapeHtml(item.title)}
-                </h4>
-
-                ${(starsHtml || hasNotes) ? `
-                  <div class="flex items-center gap-1.5 min-w-0">
-                    ${starsHtml}
-                    ${hasNotes ? `<i class="fa-solid fa-align-left text-[9px] text-lb-text" title="Tiene notas"></i>` : ''}
-                  </div>
-                ` : ''}
-
-                ${badgeLabel ? `
-                  <div class="min-w-0 mt-0.5">
-                    <span class="inline-block max-w-full text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5 rounded bg-lb-surface text-lb-text border border-lb-border truncate">
-                      ${escapeHtml(badgeLabel)}
-                    </span>
-                  </div>
-                ` : ''}
-              </div>
-            </article>
-          `;
-        }).join('');
+        empty.classList.add('hidden');
+        grid.innerHTML = displayed.map((item, idx) => renderLetterboxdCardHTML(item, idx, true)).join('');
       }
     }
 
     /********************************************************************
-     * 5B. LÓGICA DE REORDENAMIENTO (DRAG & DROP, TOUCH 250ms, ◀ ▶)
+     * 8. VISTA ENFOCADA DE ORGANIZADOR / FRANQUICIA (SIN OTROS ORGS)
      ********************************************************************/
+    function openOrganizerFocused(orgId, sourceContext = 'franchises') {
+      const org = appState.organizers.find(o => o.id === orgId);
+      if (!org) return;
+
+      currentOrganizerId = org.id;
+      currentOrgStatusFilter = 'all';
+      reorderModeActive = false;
+
+      if (sourceContext === 'format' && currentFormatId) {
+        organizerReturnContext = { tab: 'format', formatId: currentFormatId };
+        currentMainTab = 'catalog';
+        updateTopNavStyles('catalog');
+      } else {
+        organizerReturnContext = { tab: 'franchises', formatId: null };
+        currentMainTab = 'franchises';
+        updateTopNavStyles('franchises');
+      }
+
+      hideAllMainSections();
+      document.getElementById('view-organizer').classList.remove('hidden');
+      cancelInlineRenameOrganizer();
+      renderOrganizerFocusedView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goBackFromOrganizer() {
+      currentOrganizerId = null;
+      reorderModeActive = false;
+      if (organizerReturnContext.tab === 'format' && organizerReturnContext.formatId) {
+        openFormatFolder(organizerReturnContext.formatId);
+      } else {
+        switchMainTab('franchises', true);
+      }
+    }
+
+    function setOrgStatusFilter(statusKey) {
+      currentOrgStatusFilter = statusKey;
+      renderOrganizerFocusedView();
+    }
+
+    function startInlineRenameOrganizer() {
+      const org = appState.organizers.find(o => o.id === currentOrganizerId);
+      if (!org) return;
+      document.getElementById('org-title-display-row').classList.add('hidden');
+      document.getElementById('org-title-edit-row').classList.remove('hidden');
+      const input = document.getElementById('org-inline-rename-input');
+      input.value = org.name || '';
+      input.focus();
+      input.select();
+    }
+
+    function cancelInlineRenameOrganizer() {
+      document.getElementById('org-title-edit-row').classList.add('hidden');
+      document.getElementById('org-title-display-row').classList.remove('hidden');
+    }
+
+    async function saveInlineRenameOrganizer() {
+      const org = appState.organizers.find(o => o.id === currentOrganizerId);
+      if (!org) return;
+      const newName = document.getElementById('org-inline-rename-input').value.trim();
+      if (!newName) {
+        showToast('Escribe un nombre válido.', 'info');
+        return;
+      }
+      org.name = newName;
+      await saveStateToDB();
+      cancelInlineRenameOrganizer();
+      renderOrganizerFocusedView();
+      showToast('Nombre actualizado', 'success');
+    }
+
+    function renderOrganizerFocusedView() {
+      const org = appState.organizers.find(o => o.id === currentOrganizerId);
+      if (!org) {
+        goBackFromOrganizer();
+        return;
+      }
+
+      updateReorderToggleButtons();
+
+      // Etiqueta del botón Volver
+      if (organizerReturnContext.tab === 'format' && organizerReturnContext.formatId) {
+        const fmt = FORMATS.find(f => f.id === organizerReturnContext.formatId);
+        document.getElementById('org-back-label').textContent = `Volver a ${fmt ? fmt.name : 'Estantería'}`;
+      } else {
+        document.getElementById('org-back-label').textContent = 'Volver a Franquicias';
+      }
+
+      // Insignia de tipo de organizador
+      const fmtObj = org.format && org.format !== 'mixed'
+        ? FORMATS.find(f => f.id === org.format)
+        : null;
+      const scopePill = document.getElementById('org-scope-pill');
+      if (fmtObj) {
+        scopePill.textContent = `Saga · ${fmtObj.name}`;
+        scopePill.className = 'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-lb-blue/20 text-lb-blue border border-lb-blue/30';
+      } else {
+        scopePill.textContent = 'Franquicia Mixta';
+        scopePill.className = 'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-lb-orange/20 text-lb-orange border border-lb-orange/30';
+      }
+
+      document.getElementById('org-focused-title').textContent = org.name;
+
+      // Obras del organizador
+      const baseItems = (org.itemIds || [])
+        .map(id => appState.items.find(i => i.id === id))
+        .filter(Boolean);
+
+      const stats = computeProgressStats(baseItems);
+      document.getElementById('org-focused-count').textContent = `${stats.total} ${stats.total === 1 ? 'obra' : 'obras'}`;
+      document.getElementById('org-progress-summary').textContent =
+        `${stats.completed} de ${stats.active} completadas (${stats.percent}%)${stats.dropped > 0 ? ` · ${stats.dropped} abandonadas` : ''}`;
+      document.getElementById('org-progress-pct').textContent = `${stats.percent}%`;
+      document.getElementById('org-progress-fill').style.width = `${stats.percent}%`;
+
+      // Filtros de estado
+      const counts = {
+        all: baseItems.length,
+        backlog: stats.backlog,
+        playing: stats.playing,
+        completed: stats.completed,
+        dropped: stats.dropped
+      };
+      document.getElementById('org-status-filter-bar').innerHTML = Object.entries(STATUS_MAP).map(([key, cfg]) => {
+        const active = currentOrgStatusFilter === key;
+        return `
+          <button onclick="setOrgStatusFilter('${key}')"
+                  class="px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border ${
+                    active
+                      ? 'bg-lb-elevated text-white border-lb-green shadow'
+                      : 'bg-lb-surface text-lb-text hover:text-white border-lb-border'
+                  }">
+            <i class="fa-solid ${cfg.icon} ${cfg.color}"></i>
+            <span>${cfg.label}</span>
+            <span class="text-[10px] px-1.5 rounded-full bg-[#14181c] text-lb-text font-bold">${counts[key]}</span>
+          </button>
+        `;
+      }).join('');
+
+      let displayed = baseItems;
+      if (currentOrgStatusFilter !== 'all') {
+        displayed = displayed.filter(i => i.status === currentOrgStatusFilter);
+      }
+
+      document.getElementById('org-visible-hint').textContent =
+        displayed.length === 1 ? 'Mostrando 1 obra' : `Mostrando ${displayed.length} obras`;
+
+      const grid = document.getElementById('org-poster-grid');
+      const empty = document.getElementById('org-empty-state');
+
+      if (displayed.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+        grid.innerHTML = displayed.map((item, idx) => renderLetterboxdCardHTML(item, idx, true)).join('');
+      }
+    }
+
+    /********************************************************************
+     * 9. TARJETA LETTERBOXD Y REORDENAMIENTO (DRAG, TOUCH 250ms, ◀ ▶)
+     ********************************************************************/
+    function renderLetterboxdCardHTML(item, index, allowReorder = true) {
+      const statusCfg = STATUS_MAP[item.status] || STATUS_MAP.backlog;
+      const starsHtml = renderStarsInlineHTML(item.rating);
+      const hasNotes = item.notes && item.notes.trim().length > 0;
+
+      const tagParts = [];
+      if (item.platform) tagParts.push(item.platform);
+      if (item.version) tagParts.push(item.version);
+      const metaTag = tagParts.join(' · ');
+
+      const reorderAttrs = allowReorder
+        ? `draggable="true"
+           ondragstart="handleCardDragStart(event, '${item.id}')"
+           ondragover="handleCardDragOver(event)"
+           ondragleave="handleCardDragLeave(event)"
+           ondrop="handleCardDrop(event, '${item.id}')"
+           ondragend="handleCardDragEnd(event)"
+           ontouchstart="handleCardTouchStart(event, '${item.id}')"
+           ontouchmove="handleCardTouchMove(event)"
+           ontouchend="handleCardTouchEnd()"`
+        : '';
+
+      return `
+        <article class="lb-poster-item group"
+                 data-id="${item.id}"
+                 ${reorderAttrs}
+                 onclick="if(!isTouchDraggingCard) openDetailsModal('${item.id}')">
+
+          <!-- Póster limpio 2:3 con solo un pequeño punto de estado arriba a la derecha -->
+          <div class="poster-card cursor-pointer">
+            <img src="${item.coverData}" alt="${escapeHtml(item.title)}" loading="lazy" />
+            <span title="${statusCfg.label}" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full ${statusCfg.dot} ring-2 ring-[#14181c] shadow"></span>
+
+            ${(allowReorder && reorderModeActive) ? `
+              <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/75 to-transparent p-1.5 flex items-center justify-between gap-1" onclick="event.stopPropagation()">
+                <button onclick="moveItemByStep('${item.id}', -1)" class="flex-1 h-7 rounded-lg bg-lb-elevated hover:bg-lb-green hover:text-black text-white text-xs font-black border border-white/15 flex items-center justify-center transition-colors">◀</button>
+                <span class="text-[10px] font-extrabold text-white/90 px-0.5">#${index + 1}</span>
+                <button onclick="moveItemByStep('${item.id}', 1)" class="flex-1 h-7 rounded-lg bg-lb-elevated hover:bg-lb-green hover:text-black text-white text-xs font-black border border-white/15 flex items-center justify-center transition-colors">▶</button>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Fila inferior estilo Letterboxd (fuera de la imagen) -->
+          <div class="pt-1.5 px-0.5 flex flex-col gap-0.5 min-w-0">
+            <h4 class="text-[11px] sm:text-xs font-bold text-slate-100 truncate leading-snug" title="${escapeHtml(item.title)}">
+              ${escapeHtml(item.title)}
+            </h4>
+
+            ${(starsHtml || hasNotes || metaTag) ? `
+              <div class="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 min-w-0">
+                ${starsHtml}
+                ${hasNotes ? `<i class="fa-solid fa-align-left text-[9px] text-lb-text flex-shrink-0" title="Tiene notas"></i>` : ''}
+                ${metaTag ? `<span class="text-[9px] sm:text-[10px] font-semibold px-1.5 py-[1px] rounded bg-lb-surface text-lb-text border border-lb-border truncate max-w-full">${escapeHtml(metaTag)}</span>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        </article>
+      `;
+    }
+
+    function toggleReorderMode() {
+      reorderModeActive = !reorderModeActive;
+      updateReorderToggleButtons();
+      if (currentOrganizerId) {
+        renderOrganizerFocusedView();
+      } else if (currentFormatId) {
+        renderFormatView();
+      }
+    }
+
+    function updateReorderToggleButtons() {
+      const inactiveCls = 'px-3 py-2 rounded-xl bg-lb-surface hover:bg-lb-elevated text-lb-text hover:text-white border border-lb-border font-bold text-xs flex items-center gap-1.5 transition-colors';
+      const activeCls = 'px-3 py-2 rounded-xl bg-lb-orange text-black border border-lb-orange font-extrabold text-xs flex items-center gap-1.5 shadow transition-colors';
+
+      const b1 = document.getElementById('btn-format-reorder');
+      const b2 = document.getElementById('btn-org-reorder');
+      if (b1) b1.className = reorderModeActive ? activeCls : inactiveCls;
+      if (b2) b2.className = reorderModeActive ? activeCls : inactiveCls;
+    }
+
     async function reorderItems(fromId, toId) {
       if (!fromId || !toId || fromId === toId) return;
 
@@ -1880,9 +2288,9 @@
         const [moved] = org.itemIds.splice(fromIdx, 1);
         org.itemIds.splice(toIdx, 0, moved);
         await saveStateToDB();
-        renderFormatView();
+        renderOrganizerFocusedView();
         showToast('Orden actualizado', 'success');
-      } else if (currentFormatId && currentFormatId !== 'mixed') {
+      } else if (currentFormatId) {
         const ordered = getOrderedFormatItems(currentFormatId);
         const fromIdx = ordered.findIndex(i => i.id === fromId);
         const toIdx = ordered.findIndex(i => i.id === toId);
@@ -1906,8 +2314,8 @@
         const [moved] = org.itemIds.splice(idx, 1);
         org.itemIds.splice(targetIdx, 0, moved);
         await saveStateToDB();
-        renderFormatView();
-      } else if (currentFormatId && currentFormatId !== 'mixed') {
+        renderOrganizerFocusedView();
+      } else if (currentFormatId) {
         const ordered = getOrderedFormatItems(currentFormatId);
         const idx = ordered.findIndex(i => i.id === itemId);
         const targetIdx = idx + direction;
@@ -2001,10 +2409,578 @@
     }
 
     /********************************************************************
-     * 6. BUSCADOR MULTI-PORTADA 100% ABIERTO (SIN CLAVES API)
+     * 10. TIER LISTS MEJORADAS (COMPACTO / RÁPIDO / PNG MULTILÍNEA)
+     ********************************************************************/
+    function populateTierOrganizerFilter() {
+      const orgSelect = document.getElementById('tier-tray-org-filter');
+      const currentVal = orgSelect.value;
+      orgSelect.innerHTML = `<option value="all">Todas las franquicias</option>` +
+        appState.organizers.map(o => `<option value="${o.id}">${escapeHtml(o.name)}</option>`).join('');
+      if (appState.organizers.some(o => o.id === currentVal)) {
+        orgSelect.value = currentVal;
+      }
+    }
+
+    function getActiveTierList() {
+      if (!appState.tierLists || appState.tierLists.length === 0) {
+        appState.tierLists = [{
+          id: 'tier_' + Date.now(),
+          name: 'Mi Tier List General',
+          rows: [
+            { id: 'r_s', label: 'S', color: '#ff5252', itemIds: [] },
+            { id: 'r_a', label: 'A', color: '#ff9f43', itemIds: [] },
+            { id: 'r_b', label: 'B', color: '#feca57', itemIds: [] },
+            { id: 'r_c', label: 'C', color: '#48dbfb', itemIds: [] },
+            { id: 'r_d', label: 'D', color: '#1dd1a1', itemIds: [] }
+          ]
+        }];
+      }
+      let found = appState.tierLists.find(t => t.id === currentTierListId);
+      if (!found) {
+        found = appState.tierLists[0];
+        currentTierListId = found.id;
+      }
+      return found;
+    }
+
+    async function setTierPosterSize(sizeKey) {
+      if (!TIER_SIZE_CONFIG[sizeKey]) return;
+      appState.settings.tierPosterSize = sizeKey;
+      await saveStateToDB();
+      renderTierListView();
+    }
+
+    function selectTierList(id) {
+      currentTierListId = id;
+      selectedTierCoverId = null;
+      renderTierListView();
+    }
+
+    async function saveCurrentTierListName() {
+      const tier = getActiveTierList();
+      const input = document.getElementById('tierlist-custom-name-input');
+      const newName = input.value.trim();
+      if (!newName) {
+        showToast('Escribe un nombre válido para la Tier List.', 'info');
+        return;
+      }
+      tier.name = newName;
+      await saveStateToDB();
+      renderTierListView();
+      showToast(`Lista guardada como "${newName}"`, 'success');
+    }
+
+    function openNewTierListModal() {
+      document.getElementById('new-tierlist-name-input').value = '';
+      document.getElementById('modal-new-tierlist').classList.remove('hidden');
+      setTimeout(() => document.getElementById('new-tierlist-name-input').focus(), 50);
+    }
+
+    function closeNewTierListModal() {
+      document.getElementById('modal-new-tierlist').classList.add('hidden');
+    }
+
+    async function confirmCreateNewTierList() {
+      const customName = document.getElementById('new-tierlist-name-input').value.trim() || `Mi Ranking #${appState.tierLists.length + 1}`;
+      const ts = Date.now();
+      const newTier = {
+        id: 'tier_' + ts,
+        name: customName,
+        rows: [
+          { id: 'r_s_' + ts, label: 'S', color: '#ff5252', itemIds: [] },
+          { id: 'r_a_' + ts, label: 'A', color: '#ff9f43', itemIds: [] },
+          { id: 'r_b_' + ts, label: 'B', color: '#feca57', itemIds: [] },
+          { id: 'r_c_' + ts, label: 'C', color: '#48dbfb', itemIds: [] },
+          { id: 'r_d_' + ts, label: 'D', color: '#1dd1a1', itemIds: [] }
+        ]
+      };
+      appState.tierLists.push(newTier);
+      currentTierListId = newTier.id;
+      selectedTierCoverId = null;
+      await saveStateToDB();
+      closeNewTierListModal();
+      renderTierListView();
+      showToast(`Tier List "${customName}" creada`, 'success');
+    }
+
+    async function addTierRow() {
+      const tier = getActiveTierList();
+      const palette = ['#a55eea', '#ff6b81', '#00e054', '#40bcf4', '#eccc68'];
+      const letters = ['E', 'F', 'G', 'H', 'I'];
+      tier.rows.push({
+        id: 'row_' + Date.now(),
+        label: letters[tier.rows.length % letters.length],
+        color: palette[tier.rows.length % palette.length],
+        itemIds: []
+      });
+      await saveStateToDB();
+      renderTierListView();
+    }
+
+    async function moveTierRow(rowId, direction) {
+      const tier = getActiveTierList();
+      const idx = tier.rows.findIndex(r => r.id === rowId);
+      const targetIdx = idx + direction;
+      if (idx < 0 || targetIdx < 0 || targetIdx >= tier.rows.length) return;
+      const [moved] = tier.rows.splice(idx, 1);
+      tier.rows.splice(targetIdx, 0, moved);
+      await saveStateToDB();
+      renderTierListView();
+    }
+
+    async function updateTierRowLabel(rowId, newLabel) {
+      const tier = getActiveTierList();
+      const row = tier.rows.find(r => r.id === rowId);
+      if (row) {
+        row.label = newLabel.trim() || row.label;
+        await saveStateToDB();
+        renderTierQuickAssignBar();
+      }
+    }
+
+    async function updateTierRowColor(rowId, newColor) {
+      const tier = getActiveTierList();
+      const row = tier.rows.find(r => r.id === rowId);
+      if (row) {
+        row.color = newColor;
+        await saveStateToDB();
+        renderTierListView();
+      }
+    }
+
+    async function deleteTierRow(rowId) {
+      const tier = getActiveTierList();
+      if (tier.rows.length <= 1) return;
+      tier.rows = tier.rows.filter(r => r.id !== rowId);
+      await saveStateToDB();
+      renderTierListView();
+    }
+
+    function requestResetCurrentTierList() {
+      const tier = getActiveTierList();
+      openConfirmModal({
+        title: `Vaciar "${tier.name}"`,
+        message: 'Todas las portadas volverán a la bandeja sin clasificar.',
+        confirmLabel: 'Vaciar filas',
+        onConfirm: async () => {
+          tier.rows.forEach(r => { r.itemIds = []; });
+          selectedTierCoverId = null;
+          await saveStateToDB();
+          renderTierListView();
+          showToast('Filas vaciadas', 'info');
+        }
+      });
+    }
+
+    function requestDeleteCurrentTierList() {
+      const tier = getActiveTierList();
+      const isLast = appState.tierLists.length <= 1;
+      openConfirmModal({
+        title: isLast ? `Vaciar "${tier.name}"` : `Eliminar "${tier.name}"`,
+        message: isLast
+          ? 'Como es tu única Tier List, se vaciarán sus filas sin borrar tus obras.'
+          : 'Se eliminará esta Tier List (tus obras permanecen intactas).',
+        confirmLabel: isLast ? 'Vaciar' : 'Eliminar',
+        onConfirm: async () => {
+          if (isLast) {
+            tier.rows.forEach(r => { r.itemIds = []; });
+            showToast('Filas vaciadas', 'info');
+          } else {
+            appState.tierLists = appState.tierLists.filter(t => t.id !== currentTierListId);
+            currentTierListId = appState.tierLists[0].id;
+            showToast('Tier List eliminada', 'info');
+          }
+          selectedTierCoverId = null;
+          await saveStateToDB();
+          renderTierListView();
+        }
+      });
+    }
+
+    function renderTierListView() {
+      const tier = getActiveTierList();
+      const sizeKey = TIER_SIZE_CONFIG[appState.settings.tierPosterSize] ? appState.settings.tierPosterSize : 'compact';
+      const sz = TIER_SIZE_CONFIG[sizeKey];
+
+      // Actualizar botones de densidad
+      ['compact', 'normal', 'large'].forEach(k => {
+        const btn = document.getElementById(`tier-size-${k}`);
+        if (!btn) return;
+        btn.className = k === sizeKey
+          ? 'px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-lb-blue text-black shadow transition-colors'
+          : 'px-2.5 py-1 rounded-lg text-[11px] font-semibold text-lb-text hover:text-white transition-colors';
+      });
+
+      const selector = document.getElementById('tierlist-selector');
+      selector.innerHTML = appState.tierLists.map(t =>
+        `<option value="${t.id}" ${t.id === tier.id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`
+      ).join('');
+
+      const nameInput = document.getElementById('tierlist-custom-name-input');
+      if (nameInput) nameInput.value = tier.name;
+
+      const placedIds = new Set();
+      tier.rows.forEach(r => (r.itemIds || []).forEach(id => placedIds.add(id)));
+
+      const board = document.getElementById('tier-board');
+      board.innerHTML = tier.rows.map((row, rIdx) => {
+        const rowItems = (row.itemIds || [])
+          .map(id => appState.items.find(i => i.id === id))
+          .filter(Boolean);
+
+        return `
+          <div class="flex ${sz.rowMin} bg-[#161b20]">
+            <!-- Etiqueta de fila + controles compactos -->
+            <div onclick="handleTapTierRow('${row.id}')"
+                 style="background-color: ${row.color}"
+                 class="${sz.label} flex-shrink-0 flex flex-col items-center justify-center p-1 text-black font-black select-none cursor-pointer relative group">
+              <input type="text"
+                     value="${escapeHtml(row.label)}"
+                     onchange="updateTierRowLabel('${row.id}', this.value)"
+                     onclick="event.stopPropagation()"
+                     class="w-full bg-transparent text-center font-black text-black focus:outline-none focus:bg-white/30 rounded px-0.5 leading-tight" />
+              <div class="flex items-center justify-center gap-0.5 mt-1 opacity-75 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation()">
+                <button onclick="moveTierRow('${row.id}', -1)" title="Subir fila" class="text-[9px] leading-none bg-black/20 hover:bg-black/45 text-black px-1 py-0.5 rounded ${rIdx === 0 ? 'opacity-30 pointer-events-none' : ''}">▲</button>
+                <button onclick="moveTierRow('${row.id}', 1)" title="Bajar fila" class="text-[9px] leading-none bg-black/20 hover:bg-black/45 text-black px-1 py-0.5 rounded ${rIdx === tier.rows.length - 1 ? 'opacity-30 pointer-events-none' : ''}">▼</button>
+              </div>
+              <div class="flex items-center justify-center gap-1 mt-0.5 opacity-75 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation()">
+                <input type="color" value="${row.color}" onchange="updateTierRowColor('${row.id}', this.value)" title="Color" class="w-3.5 h-3.5 rounded cursor-pointer border-0 bg-transparent p-0" />
+                <button onclick="deleteTierRow('${row.id}')" title="Eliminar fila" class="text-[9px] leading-none bg-black/20 hover:bg-black/45 text-black px-1 py-0.5 rounded">✕</button>
+              </div>
+            </div>
+
+            <!-- Contenedor fluido de portadas (sin límite por fila) -->
+            <div onclick="handleTapTierRow('${row.id}')"
+                 ondragover="handleTierDragOver(event)"
+                 ondrop="handleTierDropToRow(event, '${row.id}')"
+                 class="flex-1 ${sz.container} flex flex-wrap items-start content-start cursor-pointer hover:bg-white/[0.02] transition-colors min-w-0">
+              ${rowItems.map(item => renderTierCoverThumb(item, row.id, sz.thumb)).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Bandeja sin clasificar con buscador + filtros
+      const q = (document.getElementById('tier-tray-search')?.value || '').trim().toLowerCase();
+      const fmtFilter = document.getElementById('tier-tray-format-filter').value;
+      const orgFilter = document.getElementById('tier-tray-org-filter').value;
+
+      let unrankedItems = appState.items.filter(i => !placedIds.has(i.id));
+      if (q) {
+        unrankedItems = unrankedItems.filter(i => (i.title || '').toLowerCase().includes(q));
+      }
+      if (fmtFilter !== 'all') {
+        unrankedItems = unrankedItems.filter(i => i.format === fmtFilter);
+      }
+      if (orgFilter !== 'all') {
+        const org = appState.organizers.find(o => o.id === orgFilter);
+        if (org) {
+          const allowed = new Set(org.itemIds || []);
+          unrankedItems = unrankedItems.filter(i => allowed.has(i.id));
+        }
+      }
+
+      document.getElementById('tier-unranked-count').textContent = unrankedItems.length;
+
+      const tray = document.getElementById('tier-unranked-tray');
+      if (unrankedItems.length === 0) {
+        tray.innerHTML = `<span class="text-xs text-lb-text py-4 mx-auto">No hay más portadas sin clasificar con este filtro.</span>`;
+      } else {
+        tray.innerHTML = unrankedItems.map(item => renderTierCoverThumb(item, null, sz.thumb)).join('');
+      }
+
+      renderTierQuickAssignBar();
+    }
+
+    function renderTierCoverThumb(item, rowId, sizeClasses) {
+      const isSelected = selectedTierCoverId === item.id;
+      const dropAttrs = rowId
+        ? `ondragover="handleTierPosterDragOver(event)" ondragleave="handleTierPosterDragLeave(event)" ondrop="handleTierDropOnPoster(event, '${rowId}', '${item.id}')"`
+        : '';
+
+      return `
+        <div draggable="true"
+             ondragstart="handleTierDragStart(event, '${item.id}')"
+             ${dropAttrs}
+             onclick="handleTapTierCover(event, '${item.id}')"
+             title="${escapeHtml(item.title)}"
+             class="${sizeClasses} rounded overflow-hidden border border-white/20 shadow cursor-pointer flex-shrink-0 transition-transform bg-[#1f252c] ${isSelected ? 'tier-selected-cover' : 'hover:scale-105'}">
+          <img src="${item.coverData}" alt="${escapeHtml(item.title)}" loading="lazy" class="w-full h-full object-cover pointer-events-none" />
+        </div>
+      `;
+    }
+
+    function renderTierQuickAssignBar() {
+      const bar = document.getElementById('tier-quick-assign-bar');
+      if (currentMainTab !== 'tierlists' || !selectedTierCoverId) {
+        bar.classList.add('hidden');
+        return;
+      }
+
+      const item = appState.items.find(i => i.id === selectedTierCoverId);
+      if (!item) {
+        selectedTierCoverId = null;
+        bar.classList.add('hidden');
+        return;
+      }
+
+      const tier = getActiveTierList();
+      document.getElementById('quick-assign-thumb').src = item.coverData;
+      document.getElementById('quick-assign-title').textContent = item.title;
+
+      const btns = document.getElementById('quick-assign-buttons');
+      btns.innerHTML = tier.rows.map(r => `
+        <button onclick="quickAssignSelectedToRow('${r.id}')"
+                style="background-color: ${r.color}"
+                class="min-w-[32px] h-8 px-2.5 rounded-lg text-black font-black text-xs shadow hover:brightness-110 active:scale-95 transition-transform">
+          ${escapeHtml(r.label)}
+        </button>
+      `).join('') + `
+        <button onclick="quickUnrankSelected()" class="h-8 px-2.5 rounded-lg bg-lb-elevated hover:bg-lb-border text-white font-bold text-[11px] flex items-center gap-1">
+          <i class="fa-solid fa-box-open text-lb-text"></i>
+          <span>Bandeja</span>
+        </button>
+        <button onclick="selectedTierCoverId=null; renderTierListView();" class="h-8 w-8 rounded-lg bg-black/40 hover:bg-black/70 text-lb-text hover:text-white font-bold text-xs flex items-center justify-center">✕</button>
+      `;
+
+      bar.classList.remove('hidden');
+    }
+
+    async function quickAssignSelectedToRow(rowId) {
+      if (!selectedTierCoverId) return;
+      await moveCoverToTierRow(selectedTierCoverId, rowId);
+      selectedTierCoverId = null;
+      renderTierListView();
+    }
+
+    async function quickUnrankSelected() {
+      if (!selectedTierCoverId) return;
+      const tier = getActiveTierList();
+      tier.rows.forEach(r => {
+        r.itemIds = (r.itemIds || []).filter(id => id !== selectedTierCoverId);
+      });
+      selectedTierCoverId = null;
+      await saveStateToDB();
+      renderTierListView();
+    }
+
+    function handleTapTierCover(event, itemId) {
+      event.stopPropagation();
+      selectedTierCoverId = selectedTierCoverId === itemId ? null : itemId;
+      renderTierListView();
+    }
+
+    async function handleTapTierRow(rowId) {
+      if (!selectedTierCoverId) return;
+      await moveCoverToTierRow(selectedTierCoverId, rowId);
+      selectedTierCoverId = null;
+      renderTierListView();
+    }
+
+    function handleTierDragStart(event, itemId) {
+      draggedTierCoverId = itemId;
+      event.dataTransfer.setData('text/plain', itemId);
+    }
+
+    function handleTierDragOver(event) {
+      event.preventDefault();
+    }
+
+    function handleTierPosterDragOver(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.classList.add('tier-drop-target');
+    }
+
+    function handleTierPosterDragLeave(event) {
+      event.currentTarget.classList.remove('tier-drop-target');
+    }
+
+    async function handleTierDropOnPoster(event, targetRowId, targetItemId) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.classList.remove('tier-drop-target');
+
+      const itemId = draggedTierCoverId || event.dataTransfer.getData('text/plain');
+      if (!itemId || itemId === targetItemId) return;
+
+      const tier = getActiveTierList();
+      tier.rows.forEach(r => {
+        r.itemIds = (r.itemIds || []).filter(id => id !== itemId);
+      });
+      const targetRow = tier.rows.find(r => r.id === targetRowId);
+      if (targetRow) {
+        const idx = targetRow.itemIds.indexOf(targetItemId);
+        if (idx >= 0) {
+          targetRow.itemIds.splice(idx, 0, itemId);
+        } else {
+          targetRow.itemIds.push(itemId);
+        }
+      }
+      draggedTierCoverId = null;
+      selectedTierCoverId = null;
+      await saveStateToDB();
+      renderTierListView();
+    }
+
+    async function handleTierDropToRow(event, rowId) {
+      event.preventDefault();
+      const itemId = draggedTierCoverId || event.dataTransfer.getData('text/plain');
+      if (!itemId) return;
+      await moveCoverToTierRow(itemId, rowId);
+      draggedTierCoverId = null;
+      selectedTierCoverId = null;
+      renderTierListView();
+    }
+
+    async function handleTierDropToTray(event) {
+      event.preventDefault();
+      const itemId = draggedTierCoverId || event.dataTransfer.getData('text/plain');
+      const idToUnrank = itemId || selectedTierCoverId;
+      if (!idToUnrank) return;
+
+      const tier = getActiveTierList();
+      tier.rows.forEach(r => {
+        r.itemIds = (r.itemIds || []).filter(id => id !== idToUnrank);
+      });
+      draggedTierCoverId = null;
+      selectedTierCoverId = null;
+      await saveStateToDB();
+      renderTierListView();
+    }
+
+    async function moveCoverToTierRow(itemId, targetRowId) {
+      const tier = getActiveTierList();
+      tier.rows.forEach(r => {
+        r.itemIds = (r.itemIds || []).filter(id => id !== itemId);
+      });
+      const targetRow = tier.rows.find(r => r.id === targetRowId);
+      if (targetRow) {
+        targetRow.itemIds.push(itemId);
+      }
+      await saveStateToDB();
+    }
+
+    /**
+     * Exportación PNG de alta resolución (1400px de ancho) con auto-salto multilínea:
+     * Hasta 14 portadas por línea dentro de cada fila, expandiendo la altura automáticamente
+     * para que ninguna obra quede cortada.
+     */
+    async function exportTierListAsImage() {
+      const tier = getActiveTierList();
+      showToast('Generando imagen PNG de alta resolución...', 'info');
+
+      const canvasWidth = 1400;
+      const headerHeight = 68;
+      const labelWidth = 120;
+      const perLine = 14;
+      const padX = 14;
+      const padY = 12;
+      const gapX = 8;
+      const gapY = 8;
+      const posterW = 82;   // 120 + 14 + 14*82 + 13*8 + 14 = 1400px exactos
+      const posterH = 123;  // Relación exacta 2:3
+      const rowSeparator = 2;
+
+      const rowLayouts = tier.rows.map(row => {
+        const items = (row.itemIds || [])
+          .map(id => appState.items.find(i => i.id === id))
+          .filter(Boolean);
+        const lines = Math.max(1, Math.ceil(items.length / perLine));
+        const height = padY * 2 + lines * posterH + (lines - 1) * gapY;
+        return { row, items, lines, height };
+      });
+
+      const totalHeight = headerHeight + rowLayouts.reduce((acc, r) => acc + r.height + rowSeparator, 0);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasWidth;
+      canvas.height = totalHeight;
+      const ctx = canvas.getContext('2d');
+
+      // Fondo general
+      ctx.fillStyle = '#14181c';
+      ctx.fillRect(0, 0, canvasWidth, totalHeight);
+
+      // Cabecera con título y marca discreta
+      ctx.fillStyle = '#1b222a';
+      ctx.fillRect(0, 0, canvasWidth, headerHeight);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 28px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tier.name || 'MediaVault Tier List', 24, headerHeight / 2);
+
+      const totalRanked = rowLayouts.reduce((acc, r) => acc + r.items.length, 0);
+      ctx.fillStyle = '#9ab';
+      ctx.font = '600 15px Inter, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`MediaVault · ${totalRanked} obras`, canvasWidth - 24, headerHeight / 2);
+
+      let currentY = headerHeight;
+
+      for (const layout of rowLayouts) {
+        const { row, items, height } = layout;
+
+        // Fondo de fila
+        ctx.fillStyle = '#1f252c';
+        ctx.fillRect(labelWidth, currentY, canvasWidth - labelWidth, height);
+
+        // Bloque de etiqueta
+        ctx.fillStyle = row.color;
+        ctx.fillRect(0, currentY, labelWidth, height);
+
+        // Texto de etiqueta (se ajusta si es largo)
+        ctx.fillStyle = '#000000';
+        const fontSize = (row.label || '').length > 4 ? 22 : 34;
+        ctx.font = `900 ${fontSize}px Inter, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(row.label || '', labelWidth / 2, currentY + height / 2, labelWidth - 14);
+
+        // Dibujar todas las portadas con auto-wrap cada 14 portadas
+        for (let idx = 0; idx < items.length; idx++) {
+          const item = items[idx];
+          const col = idx % perLine;
+          const lineIdx = Math.floor(idx / perLine);
+          const drawX = labelWidth + padX + col * (posterW + gapX);
+          const drawY = currentY + padY + lineIdx * (posterH + gapY);
+
+          const safeSrc = await convertUrlToOfflineBase64(item.coverData);
+          await new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              ctx.drawImage(img, drawX, drawY, posterW, posterH);
+              ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(drawX, drawY, posterW, posterH);
+              resolve();
+            };
+            img.onerror = () => resolve();
+            img.src = safeSrc || item.coverData;
+          });
+        }
+
+        // Separador entre filas
+        ctx.fillStyle = '#101418';
+        ctx.fillRect(0, currentY + height, canvasWidth, rowSeparator);
+        currentY += height + rowSeparator;
+      }
+
+      const link = document.createElement('a');
+      link.download = `${(tier.name || 'tierlist').toLowerCase().replace(/[^a-z0-9]+/g, '_')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('Tier List exportada en PNG sin recortes', 'success');
+    }
+
+    /********************************************************************
+     * 11. BUSCADOR MULTI-PORTADA 100% ABIERTO (SIN CLAVES API)
      ********************************************************************/
     function openSearchModal(presetFormat = null) {
       reselectingCoverForItemId = null;
+      addingToOrganizerId = null;
       document.getElementById('search-modal-title').textContent = 'Buscador Multi-Portada';
       const fmtSelect = document.getElementById('search-format-select');
       if (presetFormat && presetFormat !== 'mixed') {
@@ -2016,13 +2992,19 @@
       setTimeout(() => document.getElementById('search-query-input').focus(), 60);
     }
 
-    function openSearchModalForCurrentFormat() {
-      openSearchModal(currentFormatId);
+    function openSearchModalForOrganizer() {
+      const org = appState.organizers.find(o => o.id === currentOrganizerId);
+      openSearchModal(org && org.format !== 'mixed' ? org.format : null);
+      addingToOrganizerId = currentOrganizerId;
+      if (org) {
+        document.getElementById('search-modal-title').textContent = `Añadir obra a: ${org.name}`;
+      }
     }
 
     function closeSearchModal() {
       document.getElementById('modal-search').classList.add('hidden');
       reselectingCoverForItemId = null;
+      addingToOrganizerId = null;
     }
 
     function toggleManualCoverBox() {
@@ -2069,9 +3051,7 @@
           const res = await fetch(ep);
           if (res.ok) {
             const data = await res.json();
-            if (data && Array.isArray(data.d)) {
-              return data.d;
-            }
+            if (data && Array.isArray(data.d)) return data.d;
           }
         } catch (e) {}
       }
@@ -2085,7 +3065,7 @@
       const loadingEl = document.getElementById('search-loading');
 
       if (!query) {
-        showToast('Escribe el nombre de una obra para buscar sus portadas.', 'info');
+        showToast('Escribe el nombre de una obra para buscar portadas.', 'info');
         return;
       }
 
@@ -2097,9 +3077,7 @@
       const allCovers = [];
 
       try {
-        // ===============================================================
-        // A. LIBROS (OpenLibrary + Ediciones + Google Books + iTunes eBooks HD)
-        // ===============================================================
+        // A. LIBROS
         if (format === 'libros') {
           const [olRes, gbRes, appleBooksRes] = await Promise.allSettled([
             fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=20`).then(r => r.json()),
@@ -2124,7 +3102,7 @@
                   title,
                   url: `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-L.jpg?default=false`,
                   source: 'OpenLibrary',
-                  label: `Edición Principal`
+                  label: 'Edición Principal'
                 });
               }
               if (Array.isArray(doc.edition_key)) {
@@ -2191,17 +3169,15 @@
                 pushUniqueCover(allCovers, {
                   title: `${b.trackName || query}${b.artistName ? ' — ' + b.artistName : ''}`,
                   url: b.artworkUrl100.replace('100x100bb', '1000x1000bb'),
-                  source: 'iTunes HD',
-                  label: 'Apple Books HD'
+                  source: 'Apple Books HD',
+                  label: 'Edición Digital HD'
                 });
               }
             });
           }
         }
 
-        // ===============================================================
-        // B. VIDEOJUEGOS (CheapShark -> Steam CDN + VNDB + Internet Archive + iTunes HD)
-        // ===============================================================
+        // B. VIDEOJUEGOS
         else if (format === 'videojuegos') {
           const [csRes, vndbRes, archiveRes, itunesRes] = await Promise.allSettled([
             fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(query)}&limit=25`).then(r => r.json()),
@@ -2285,9 +3261,7 @@
           }
         }
 
-        // ===============================================================
-        // C. PELÍCULAS (iTunes Movies HD + IMDb Public + TVMaze + Wikimedia)
-        // ===============================================================
+        // C. PELÍCULAS
         else if (format === 'peliculas') {
           const [moviesRes, imdbList, tvmazeRes, wikiRes] = await Promise.allSettled([
             fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=24`).then(r => r.json()),
@@ -2355,9 +3329,7 @@
           }
         }
 
-        // ===============================================================
-        // D. SERIES (TVMaze + Galerías /images + iTunes Temporadas HD + IMDb)
-        // ===============================================================
+        // D. SERIES
         else if (format === 'series') {
           const [tvmazeRes, tvSeasonsRes, imdbList] = await Promise.allSettled([
             fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(query)}`).then(r => r.json()),
@@ -2432,9 +3404,7 @@
           }
         }
 
-        // ===============================================================
-        // E. ANIME Y CÓMICS / MANGA (AniList + Jikan/MAL + Kitsu + Google Books + OpenLibrary)
-        // ===============================================================
+        // E. ANIME Y CÓMICS / MANGA
         else if (format === 'anime' || format === 'comics') {
           const isAnime = format === 'anime';
           const anilistMediaType = isAnime ? 'ANIME' : 'MANGA';
@@ -2603,13 +3573,13 @@
       const resultsArea = document.getElementById('search-results-area');
 
       if (resetRaw) {
-        const fallbackStylized1 = createStylizedOfflinePoster(query, 'Edición Coleccionista', '#1e293b', '#0f172a', '#00e054', '✦');
-        const fallbackStylized2 = createStylizedOfflinePoster(query, 'Edición Clásica', '#2b0912', '#0d0407', '#ff8000', '❖');
+        const fallback1 = createStylizedOfflinePoster(query, 'Edición Coleccionista', '#1e293b', '#0f172a', '#00e054', '✦');
+        const fallback2 = createStylizedOfflinePoster(query, 'Edición Clásica', '#2b0912', '#0d0407', '#ff8000', '❖');
 
         window._rawSearchCovers = [
           ...coversList,
-          { title: query, url: fallbackStylized1, source: 'Minimalista', label: 'Arte Minimalista Verde' },
-          { title: query, url: fallbackStylized2, source: 'Minimalista', label: 'Arte Clásico Nocturno' }
+          { title: query, url: fallback1, source: 'Minimalista', label: 'Arte Minimalista Verde' },
+          { title: query, url: fallback2, source: 'Minimalista', label: 'Arte Clásico Nocturno' }
         ];
       }
 
@@ -2641,7 +3611,6 @@
             </div>
           </div>
 
-          <!-- Píldoras de Filtro por Fuente -->
           <div class="flex flex-wrap items-center gap-1.5">
             <button onclick="filterCoversBySource('ALL')"
                     class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${currentCoverSourceFilter === 'ALL' ? 'bg-lb-green text-black' : 'bg-lb-elevated text-lb-text hover:text-white'}">
@@ -2751,16 +3720,16 @@
         rating: 0,
         date: new Date().toISOString().slice(0, 10),
         platform: '',
-        edition: '',
-        canon: '',
+        version: '',
         notes: '',
         createdAt: Date.now()
       };
 
       appState.items.unshift(newItem);
 
-      if (currentOrganizerId) {
-        const org = appState.organizers.find(o => o.id === currentOrganizerId);
+      const targetOrgId = addingToOrganizerId || currentOrganizerId;
+      if (targetOrgId) {
+        const org = appState.organizers.find(o => o.id === targetOrgId);
         if (org && !org.itemIds.includes(newItem.id)) {
           org.itemIds.push(newItem.id);
         }
@@ -2774,7 +3743,7 @@
     }
 
     /********************************************************************
-     * 7. FICHA DE DETALLES DE LA OBRA
+     * 12. MODAL DE DETALLES DE LA OBRA
      ********************************************************************/
     function openDetailsModal(itemId) {
       const item = appState.items.find(i => i.id === itemId);
@@ -2797,8 +3766,7 @@
       document.getElementById('detail-status-select').value = item.status || 'backlog';
       document.getElementById('detail-date-input').value = item.date || '';
       document.getElementById('detail-platform-input').value = item.platform || '';
-      document.getElementById('detail-edition-select').value = item.edition || '';
-      document.getElementById('detail-canon-select').value = item.canon || '';
+      document.getElementById('detail-version-input').value = item.version || item.edition || '';
       document.getElementById('detail-notes-input').value = item.notes || '';
 
       renderDetailStarsWidget();
@@ -2848,7 +3816,7 @@
       const eligibleOrgs = appState.organizers.filter(o => o.format === item.format || o.format === 'mixed');
 
       if (eligibleOrgs.length === 0) {
-        listEl.innerHTML = `<span class="text-xs text-lb-text">No hay organizadores creados aún.</span>`;
+        listEl.innerHTML = `<span class="text-xs text-lb-text">No hay franquicias u organizadores creados aún.</span>`;
         return;
       }
 
@@ -2872,12 +3840,10 @@
       item.status = document.getElementById('detail-status-select').value;
       item.date = document.getElementById('detail-date-input').value;
       item.platform = document.getElementById('detail-platform-input').value.trim();
-      item.edition = document.getElementById('detail-edition-select').value;
-      item.canon = document.getElementById('detail-canon-select').value;
+      item.version = document.getElementById('detail-version-input').value.trim();
       item.notes = document.getElementById('detail-notes-input').value.trim();
 
-      const checkboxes = document.querySelectorAll('.detail-org-checkbox');
-      checkboxes.forEach(cb => {
+      document.querySelectorAll('.detail-org-checkbox').forEach(cb => {
         const org = appState.organizers.find(o => o.id === cb.value);
         if (!org) return;
         if (!Array.isArray(org.itemIds)) org.itemIds = [];
@@ -2925,7 +3891,7 @@
       const item = appState.items.find(i => i.id === editingItemId);
       openConfirmModal({
         title: `Eliminar "${item ? item.title : 'obra'}"`,
-        message: 'Esta obra se eliminará de tu estantería, organizadores y Tier Lists.',
+        message: 'Esta obra se eliminará de tu estantería, franquicias y Tier Lists.',
         confirmLabel: 'Eliminar',
         onConfirm: async () => {
           const idToRemove = editingItemId;
@@ -2947,13 +3913,18 @@
     }
 
     /********************************************************************
-     * 8. GESTIÓN DE ORGANIZADORES Y FRANQUICIAS
+     * 13. GESTIÓN DE FRANQUICIAS / ORGANIZADORES
      ********************************************************************/
-    function openNewOrganizerModal(scope) {
-      pendingOrganizerScope = scope;
+    function openNewOrganizerModal(presetScope = 'mixed') {
       document.getElementById('org-name-input').value = '';
-      document.getElementById('org-modal-title').textContent =
-        scope === 'mixed' ? 'Nueva Franquicia u Organizador Mixto' : 'Nuevo Organizador de Carpeta';
+      const fmtSel = document.getElementById('org-format-select');
+      if (presetScope === 'format' && currentFormatId) {
+        fmtSel.value = currentFormatId;
+        document.getElementById('org-modal-title').textContent = 'Nuevo Organizador de Carpeta';
+      } else {
+        fmtSel.value = 'mixed';
+        document.getElementById('org-modal-title').textContent = 'Nueva Franquicia u Organizador';
+      }
       document.getElementById('modal-organizer').classList.remove('hidden');
       setTimeout(() => document.getElementById('org-name-input').focus(), 50);
     }
@@ -2965,11 +3936,11 @@
     async function confirmCreateOrganizer() {
       const name = document.getElementById('org-name-input').value.trim();
       if (!name) {
-        showToast('Escribe un nombre para el organizador.', 'info');
+        showToast('Escribe un nombre para la franquicia.', 'info');
         return;
       }
 
-      const formatTarget = pendingOrganizerScope === 'mixed' ? 'mixed' : (currentFormatId || 'libros');
+      const formatTarget = document.getElementById('org-format-select').value || 'mixed';
       const newOrg = {
         id: 'org_' + Date.now(),
         name,
@@ -2981,7 +3952,7 @@
       await saveStateToDB();
       closeOrganizerModal();
       renderAllActiveViews();
-      showToast(`Organizador "${name}" creado`, 'success');
+      showToast(`"${name}" creada con éxito`, 'success');
     }
 
     function requestDeleteCurrentOrganizer() {
@@ -2989,51 +3960,57 @@
       const org = appState.organizers.find(o => o.id === currentOrganizerId);
       openConfirmModal({
         title: `Eliminar "${org ? org.name : 'organizador'}"`,
-        message: 'Se eliminará el organizador, pero todas tus obras permanecerán intactas en tu catálogo.',
+        message: 'Se eliminará esta franquicia, pero todas tus obras seguirán intactas en tu estantería.',
         confirmLabel: 'Eliminar',
         onConfirm: async () => {
           appState.organizers = appState.organizers.filter(o => o.id !== currentOrganizerId);
           currentOrganizerId = null;
           await saveStateToDB();
-          if (currentFormatId === 'mixed') {
-            navigateHome();
-          } else {
-            renderFormatView();
-          }
+          goBackFromOrganizer();
           showToast('Organizador eliminado', 'info');
         }
       });
     }
 
     function openAddExistingToOrganizerModal() {
+      document.getElementById('add-to-org-search').value = '';
+      renderAddExistingGrid();
+      document.getElementById('modal-add-to-org').classList.remove('hidden');
+    }
+
+    function renderAddExistingGrid() {
       const org = appState.organizers.find(o => o.id === currentOrganizerId);
       if (!org) return;
 
+      const q = (document.getElementById('add-to-org-search')?.value || '').trim().toLowerCase();
       const grid = document.getElementById('add-to-org-grid');
-      const candidateItems = org.format === 'mixed'
+      let candidates = org.format === 'mixed'
         ? appState.items
         : appState.items.filter(i => i.format === org.format);
 
-      if (candidateItems.length === 0) {
-        grid.innerHTML = `<p class="col-span-full text-xs text-lb-text py-6 text-center">No tienes obras en esta categoría todavía.</p>`;
-      } else {
-        grid.innerHTML = candidateItems.map(item => {
-          const isInside = (org.itemIds || []).includes(item.id);
-          return `
-            <div onclick="toggleItemInActiveOrganizer('${item.id}')" class="flex flex-col gap-1 cursor-pointer min-w-0">
-              <div class="poster-card ${isInside ? 'ring-2 ring-lb-green' : 'opacity-65 hover:opacity-100'}">
-                <img src="${item.coverData}" alt="${escapeHtml(item.title)}" />
-                <div class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center ${isInside ? 'bg-lb-green text-black' : 'bg-black/75 text-white'} text-xs font-bold">
-                  ${isInside ? '✓' : '+'}
-                </div>
-              </div>
-              <span class="text-[10px] font-semibold text-white truncate">${escapeHtml(item.title)}</span>
-            </div>
-          `;
-        }).join('');
+      if (q) {
+        candidates = candidates.filter(i => (i.title || '').toLowerCase().includes(q));
       }
 
-      document.getElementById('modal-add-to-org').classList.remove('hidden');
+      if (candidates.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-xs text-lb-text py-6 text-center">No hay obras disponibles con este filtro.</p>`;
+        return;
+      }
+
+      grid.innerHTML = candidates.map(item => {
+        const isInside = (org.itemIds || []).includes(item.id);
+        return `
+          <div onclick="toggleItemInActiveOrganizer('${item.id}')" class="flex flex-col gap-1 cursor-pointer min-w-0">
+            <div class="poster-card ${isInside ? 'ring-2 ring-lb-green' : 'opacity-65 hover:opacity-100'}">
+              <img src="${item.coverData}" alt="${escapeHtml(item.title)}" />
+              <div class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center ${isInside ? 'bg-lb-green text-black' : 'bg-black/75 text-white'} text-xs font-bold">
+                ${isInside ? '✓' : '+'}
+              </div>
+            </div>
+            <span class="text-[10px] font-semibold text-white truncate">${escapeHtml(item.title)}</span>
+          </div>
+        `;
+      }).join('');
     }
 
     async function toggleItemInActiveOrganizer(itemId) {
@@ -3047,8 +4024,8 @@
         org.itemIds.push(itemId);
       }
       await saveStateToDB();
-      openAddExistingToOrganizerModal();
-      renderFormatView();
+      renderAddExistingGrid();
+      renderOrganizerFocusedView();
     }
 
     function closeAddExistingToOrganizerModal() {
@@ -3056,426 +4033,7 @@
     }
 
     /********************************************************************
-     * 9. VISTA 3: TIER LISTS + EXPORTACIÓN PNG
-     ********************************************************************/
-    function switchMainTab(tab) {
-      currentMainTab = tab;
-      const btnCatalog = document.getElementById('nav-catalog');
-      const btnTiers = document.getElementById('nav-tierlists');
-
-      if (tab === 'catalog') {
-        btnCatalog.className = 'flex-1 sm:flex-initial justify-center px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-lb-elevated text-white shadow';
-        btnTiers.className = 'flex-1 sm:flex-initial justify-center px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-lb-text hover:text-white';
-        document.getElementById('view-tierlists').classList.add('hidden');
-        if (currentFormatId) {
-          document.getElementById('view-format').classList.remove('hidden');
-          document.getElementById('view-home').classList.add('hidden');
-          renderFormatView();
-        } else {
-          document.getElementById('view-home').classList.remove('hidden');
-          document.getElementById('view-format').classList.add('hidden');
-          renderHomeFormats();
-        }
-      } else {
-        btnTiers.className = 'flex-1 sm:flex-initial justify-center px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-lb-elevated text-white shadow';
-        btnCatalog.className = 'flex-1 sm:flex-initial justify-center px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-lb-text hover:text-white';
-        document.getElementById('view-home').classList.add('hidden');
-        document.getElementById('view-format').classList.add('hidden');
-        document.getElementById('view-tierlists').classList.remove('hidden');
-        populateTierOrganizerFilter();
-        renderTierListView();
-      }
-    }
-
-    function populateTierOrganizerFilter() {
-      const orgSelect = document.getElementById('tier-tray-org-filter');
-      const currentVal = orgSelect.value;
-      orgSelect.innerHTML = `<option value="all">Cualquier organizador</option>` +
-        appState.organizers.map(o => `<option value="${o.id}">${escapeHtml(o.name)}</option>`).join('');
-      if (appState.organizers.some(o => o.id === currentVal)) {
-        orgSelect.value = currentVal;
-      }
-    }
-
-    function getActiveTierList() {
-      if (!appState.tierLists || appState.tierLists.length === 0) {
-        appState.tierLists = [{
-          id: 'tier_' + Date.now(),
-          name: 'Mi Tier List General',
-          rows: [
-            { id: 'r_s', label: 'S', color: '#ff5252', itemIds: [] },
-            { id: 'r_a', label: 'A', color: '#ff9f43', itemIds: [] },
-            { id: 'r_b', label: 'B', color: '#feca57', itemIds: [] },
-            { id: 'r_c', label: 'C', color: '#48dbfb', itemIds: [] },
-            { id: 'r_d', label: 'D', color: '#1dd1a1', itemIds: [] }
-          ]
-        }];
-      }
-      let found = appState.tierLists.find(t => t.id === currentTierListId);
-      if (!found) {
-        found = appState.tierLists[0];
-        currentTierListId = found.id;
-      }
-      return found;
-    }
-
-    function selectTierList(id) {
-      currentTierListId = id;
-      selectedTierCoverId = null;
-      renderTierListView();
-    }
-
-    async function saveCurrentTierListName() {
-      const tier = getActiveTierList();
-      const input = document.getElementById('tierlist-custom-name-input');
-      const newName = input.value.trim();
-      if (!newName) {
-        showToast('Escribe un nombre válido para la Tier List.', 'info');
-        return;
-      }
-      tier.name = newName;
-      await saveStateToDB();
-      renderTierListView();
-      showToast(`Lista guardada como "${newName}"`, 'success');
-    }
-
-    function openNewTierListModal() {
-      document.getElementById('new-tierlist-name-input').value = '';
-      document.getElementById('modal-new-tierlist').classList.remove('hidden');
-      setTimeout(() => document.getElementById('new-tierlist-name-input').focus(), 50);
-    }
-
-    function closeNewTierListModal() {
-      document.getElementById('modal-new-tierlist').classList.add('hidden');
-    }
-
-    async function confirmCreateNewTierList() {
-      const customName = document.getElementById('new-tierlist-name-input').value.trim() || `Mi Ranking #${appState.tierLists.length + 1}`;
-      const newTier = {
-        id: 'tier_' + Date.now(),
-        name: customName,
-        rows: [
-          { id: 'r_s_' + Date.now(), label: 'S', color: '#ff5252', itemIds: [] },
-          { id: 'r_a_' + Date.now(), label: 'A', color: '#ff9f43', itemIds: [] },
-          { id: 'r_b_' + Date.now(), label: 'B', color: '#feca57', itemIds: [] },
-          { id: 'r_c_' + Date.now(), label: 'C', color: '#48dbfb', itemIds: [] },
-          { id: 'r_d_' + Date.now(), label: 'D', color: '#1dd1a1', itemIds: [] }
-        ]
-      };
-      appState.tierLists.push(newTier);
-      currentTierListId = newTier.id;
-      await saveStateToDB();
-      closeNewTierListModal();
-      renderTierListView();
-      showToast(`Tier List "${customName}" creada y guardada`, 'success');
-    }
-
-    async function addTierRow() {
-      const tier = getActiveTierList();
-      const palette = ['#a55eea', '#ff6b81', '#00e054', '#40bcf4', '#eccc68'];
-      const letters = ['E', 'F', 'G', 'H'];
-      tier.rows.push({
-        id: 'row_' + Date.now(),
-        label: letters[tier.rows.length % letters.length],
-        color: palette[tier.rows.length % palette.length],
-        itemIds: []
-      });
-      await saveStateToDB();
-      renderTierListView();
-    }
-
-    async function updateTierRowLabel(rowId, newLabel) {
-      const tier = getActiveTierList();
-      const row = tier.rows.find(r => r.id === rowId);
-      if (row) {
-        row.label = newLabel.trim() || row.label;
-        await saveStateToDB();
-      }
-    }
-
-    async function updateTierRowColor(rowId, newColor) {
-      const tier = getActiveTierList();
-      const row = tier.rows.find(r => r.id === rowId);
-      if (row) {
-        row.color = newColor;
-        await saveStateToDB();
-        renderTierListView();
-      }
-    }
-
-    async function deleteTierRow(rowId) {
-      const tier = getActiveTierList();
-      if (tier.rows.length <= 1) return;
-      tier.rows = tier.rows.filter(r => r.id !== rowId);
-      await saveStateToDB();
-      renderTierListView();
-    }
-
-    function requestResetCurrentTierList() {
-      const tier = getActiveTierList();
-      openConfirmModal({
-        title: `Vaciar "${tier.name}"`,
-        message: 'Se devolverán todas las portadas de esta Tier List a la bandeja sin clasificar.',
-        confirmLabel: 'Vaciar filas',
-        onConfirm: async () => {
-          tier.rows.forEach(r => { r.itemIds = []; });
-          selectedTierCoverId = null;
-          await saveStateToDB();
-          renderTierListView();
-          showToast('Filas vaciadas', 'info');
-        }
-      });
-    }
-
-    function requestDeleteCurrentTierList() {
-      const tier = getActiveTierList();
-      const isLast = appState.tierLists.length <= 1;
-      openConfirmModal({
-        title: isLast ? `Vaciar "${tier.name}"` : `Eliminar "${tier.name}"`,
-        message: isLast
-          ? 'Como es tu única Tier List, se vaciarán sus filas sin borrar tus obras.'
-          : 'Se eliminará esta Tier List permanentemente (tus obras siguen intactas).',
-        confirmLabel: isLast ? 'Vaciar' : 'Eliminar',
-        onConfirm: async () => {
-          if (isLast) {
-            tier.rows.forEach(r => { r.itemIds = []; });
-            showToast('Filas vaciadas', 'info');
-          } else {
-            appState.tierLists = appState.tierLists.filter(t => t.id !== currentTierListId);
-            currentTierListId = appState.tierLists[0].id;
-            showToast('Tier List eliminada', 'info');
-          }
-          selectedTierCoverId = null;
-          await saveStateToDB();
-          renderTierListView();
-        }
-      });
-    }
-
-    function renderTierListView() {
-      const tier = getActiveTierList();
-
-      const selector = document.getElementById('tierlist-selector');
-      selector.innerHTML = appState.tierLists.map(t =>
-        `<option value="${t.id}" ${t.id === tier.id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`
-      ).join('');
-
-      const nameInput = document.getElementById('tierlist-custom-name-input');
-      if (nameInput) nameInput.value = tier.name;
-
-      const placedIds = new Set();
-      tier.rows.forEach(r => (r.itemIds || []).forEach(id => placedIds.add(id)));
-
-      const board = document.getElementById('tier-board');
-      board.innerHTML = tier.rows.map(row => {
-        const rowItems = (row.itemIds || [])
-          .map(id => appState.items.find(i => i.id === id))
-          .filter(Boolean);
-
-        return `
-          <div class="flex min-h-[104px] bg-[#161b20]">
-            <div onclick="handleTapTierRow('${row.id}')"
-                 style="background-color: ${row.color}"
-                 class="w-16 sm:w-24 flex-shrink-0 flex flex-col items-center justify-center p-1.5 text-black font-black select-none cursor-pointer relative group">
-              <input type="text"
-                     value="${escapeHtml(row.label)}"
-                     onchange="updateTierRowLabel('${row.id}', this.value)"
-                     onclick="event.stopPropagation()"
-                     class="w-full bg-transparent text-center text-sm sm:text-lg font-black text-black focus:outline-none focus:bg-white/30 rounded px-1" />
-              <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-1" onclick="event.stopPropagation()">
-                <input type="color" value="${row.color}" onchange="updateTierRowColor('${row.id}', this.value)" class="w-4 h-4 rounded cursor-pointer border-0 bg-transparent" />
-                <button onclick="deleteTierRow('${row.id}')" class="text-[10px] bg-black/25 hover:bg-black/50 text-black px-1 rounded">✕</button>
-              </div>
-            </div>
-
-            <div onclick="handleTapTierRow('${row.id}')"
-                 ondragover="handleTierDragOver(event)"
-                 ondrop="handleTierDropToRow(event, '${row.id}')"
-                 class="flex-1 p-2 flex flex-wrap items-center gap-2 min-h-[104px] cursor-pointer hover:bg-white/[0.02] transition-colors min-w-0">
-              ${rowItems.map(item => renderTierCoverThumb(item)).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      const fmtFilter = document.getElementById('tier-tray-format-filter').value;
-      const orgFilter = document.getElementById('tier-tray-org-filter').value;
-
-      let unrankedItems = appState.items.filter(i => !placedIds.has(i.id));
-      if (fmtFilter !== 'all') {
-        unrankedItems = unrankedItems.filter(i => i.format === fmtFilter);
-      }
-      if (orgFilter !== 'all') {
-        const org = appState.organizers.find(o => o.id === orgFilter);
-        if (org) {
-          const allowed = new Set(org.itemIds || []);
-          unrankedItems = unrankedItems.filter(i => allowed.has(i.id));
-        }
-      }
-
-      const tray = document.getElementById('tier-unranked-tray');
-      if (unrankedItems.length === 0) {
-        tray.innerHTML = `<span class="text-xs text-lb-text py-4 mx-auto">No hay más portadas sin clasificar con este filtro.</span>`;
-      } else {
-        tray.innerHTML = unrankedItems.map(item => renderTierCoverThumb(item)).join('');
-      }
-    }
-
-    function renderTierCoverThumb(item) {
-      const isSelected = selectedTierCoverId === item.id;
-      return `
-        <div draggable="true"
-             ondragstart="handleTierDragStart(event, '${item.id}')"
-             onclick="handleTapTierCover(event, '${item.id}')"
-             title="${escapeHtml(item.title)}"
-             class="w-14 h-[84px] sm:w-16 sm:h-24 rounded-md overflow-hidden border border-white/20 shadow cursor-pointer flex-shrink-0 transition-transform ${isSelected ? 'tier-selected-cover' : 'hover:scale-105'}">
-          <img src="${item.coverData}" alt="${escapeHtml(item.title)}" class="w-full h-full object-cover pointer-events-none" />
-        </div>
-      `;
-    }
-
-    function handleTapTierCover(event, itemId) {
-      event.stopPropagation();
-      selectedTierCoverId = selectedTierCoverId === itemId ? null : itemId;
-      renderTierListView();
-    }
-
-    async function handleTapTierRow(rowId) {
-      if (!selectedTierCoverId) return;
-      await moveCoverToTierRow(selectedTierCoverId, rowId);
-      selectedTierCoverId = null;
-      renderTierListView();
-    }
-
-    async function handleTapTierTray() {
-      if (!selectedTierCoverId) return;
-      const tier = getActiveTierList();
-      tier.rows.forEach(r => {
-        r.itemIds = (r.itemIds || []).filter(id => id !== selectedTierCoverId);
-      });
-      selectedTierCoverId = null;
-      await saveStateToDB();
-      renderTierListView();
-    }
-
-    function handleTierDragStart(event, itemId) {
-      draggedTierCoverId = itemId;
-      event.dataTransfer.setData('text/plain', itemId);
-    }
-
-    function handleTierDragOver(event) {
-      event.preventDefault();
-    }
-
-    async function handleTierDropToRow(event, rowId) {
-      event.preventDefault();
-      const itemId = draggedTierCoverId || event.dataTransfer.getData('text/plain');
-      if (!itemId) return;
-      await moveCoverToTierRow(itemId, rowId);
-      draggedTierCoverId = null;
-      selectedTierCoverId = null;
-      renderTierListView();
-    }
-
-    async function handleTierDropToTray(event) {
-      event.preventDefault();
-      const itemId = draggedTierCoverId || event.dataTransfer.getData('text/plain');
-      const idToUnrank = itemId || selectedTierCoverId;
-      if (!idToUnrank) return;
-
-      const tier = getActiveTierList();
-      tier.rows.forEach(r => {
-        r.itemIds = (r.itemIds || []).filter(id => id !== idToUnrank);
-      });
-      draggedTierCoverId = null;
-      selectedTierCoverId = null;
-      await saveStateToDB();
-      renderTierListView();
-    }
-
-    async function moveCoverToTierRow(itemId, targetRowId) {
-      const tier = getActiveTierList();
-      tier.rows.forEach(r => {
-        r.itemIds = (r.itemIds || []).filter(id => id !== itemId);
-      });
-      const targetRow = tier.rows.find(r => r.id === targetRowId);
-      if (targetRow) {
-        targetRow.itemIds.push(itemId);
-      }
-      await saveStateToDB();
-    }
-
-    async function exportTierListAsImage() {
-      const tier = getActiveTierList();
-      showToast('Generando imagen PNG...', 'info');
-
-      const headerHeight = 56;
-      const rowHeight = 130;
-      const labelWidth = 110;
-      const canvasWidth = 1000;
-      const canvasHeight = headerHeight + tier.rows.length * rowHeight;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-      const ctx = canvas.getContext('2d');
-
-      ctx.fillStyle = '#14181c';
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '800 24px Inter, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(tier.name || 'MediaVault Tier List', 20, headerHeight / 2);
-
-      for (let rIdx = 0; rIdx < tier.rows.length; rIdx++) {
-        const row = tier.rows[rIdx];
-        const y = headerHeight + rIdx * rowHeight;
-
-        ctx.fillStyle = '#1f252c';
-        ctx.fillRect(labelWidth, y, canvasWidth - labelWidth, rowHeight - 2);
-
-        ctx.fillStyle = row.color;
-        ctx.fillRect(0, y, labelWidth, rowHeight - 2);
-
-        ctx.fillStyle = '#000000';
-        ctx.font = '900 28px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(row.label, labelWidth / 2, y + rowHeight / 2);
-
-        const rowItems = (row.itemIds || [])
-          .map(id => appState.items.find(i => i.id === id))
-          .filter(Boolean);
-
-        let xOffset = labelWidth + 12;
-        for (const item of rowItems) {
-          if (xOffset + 80 > canvasWidth) break;
-          const safeSrc = await convertUrlToOfflineBase64(item.coverData);
-          await new Promise((resolve) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              ctx.drawImage(img, xOffset, y + 10, 72, 108);
-              resolve();
-            };
-            img.onerror = () => resolve();
-            img.src = safeSrc || item.coverData;
-          });
-          xOffset += 80;
-        }
-      }
-
-      const link = document.createElement('a');
-      link.download = `${(tier.name || 'tierlist').toLowerCase().replace(/\s+/g, '_')}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast('Tier List descargada en PNG', 'success');
-    }
-
-    /********************************************************************
-     * 10. RESPALDO JSON, MODAL DE CONFIRMACIÓN Y UTILIDADES
+     * 14. RESPALDO JSON, MODAL DE CONFIRMACIÓN Y HELPERS
      ********************************************************************/
     function openBackupModal() {
       const rawJson = JSON.stringify(appState);
@@ -3547,11 +4105,21 @@
     }
 
     function renderAllActiveViews() {
-      renderHomeFormats();
-      if (currentFormatId) {
-        renderFormatView();
-      }
-      if (currentMainTab === 'tierlists') {
+      if (currentMainTab === 'catalog') {
+        if (currentOrganizerId) {
+          renderOrganizerFocusedView();
+        } else if (currentFormatId) {
+          renderFormatView();
+        } else {
+          renderHomeFormats();
+        }
+      } else if (currentMainTab === 'franchises') {
+        if (currentOrganizerId) {
+          renderOrganizerFocusedView();
+        } else {
+          renderFranchisesTab();
+        }
+      } else if (currentMainTab === 'tierlists') {
         populateTierOrganizerFilter();
         renderTierListView();
       }
@@ -3571,7 +4139,7 @@
         el.style.opacity = '0';
         el.style.transform = 'translateY(8px)';
         setTimeout(() => el.remove(), 300);
-      }, 3000);
+      }, 2800);
     }
 
     function escapeHtml(str) {
