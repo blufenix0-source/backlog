@@ -4167,3 +4167,1139 @@
   </script>
 </body>
 </html>
+<!-- ===================================================================== -->
+<!-- MÓDULO EXTRA: NOTAS 1-10 DECIMALES + GRUPOS DE TIER LIST E IMÁGENES   -->
+<!-- Pegar justo antes de </body>                                          -->
+<!-- ===================================================================== -->
+<style>
+  /* Insignia de nota 1-10 en tarjetas */
+  .mv-score10-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(20, 24, 28, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    line-height: 1.2;
+  }
+  /* Filas arrastrables limpias en Tier List */
+  .mv-tier-row-dragging {
+    opacity: 0.45;
+    outline: 2px dashed #40bcf4;
+  }
+  .mv-tier-row-over {
+    border-top: 3px solid #00e054 !important;
+  }
+  .mv-tier-handle {
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+  .mv-tier-handle:active {
+    cursor: grabbing;
+  }
+  /* Tamaños y proporción en Tier List */
+  .mv-thumb-sm.mv-ratio-poster { width: 46px; height: 69px; }
+  .mv-thumb-md.mv-ratio-poster { width: 60px; height: 90px; }
+  .mv-thumb-lg.mv-ratio-poster { width: 76px; height: 114px; }
+  .mv-thumb-sm.mv-ratio-square { width: 54px; height: 54px; }
+  .mv-thumb-md.mv-ratio-square { width: 68px; height: 68px; }
+  .mv-thumb-lg.mv-ratio-square { width: 84px; height: 84px; }
+</style>
+
+<script>
+(function () {
+  const MV_PRESET_COLORS = [
+    '#ff5252', '#ff8000', '#ff9f43', '#feca57', '#00e054',
+    '#1dd1a1', '#40bcf4', '#54a0ff', '#a55eea', '#ff6b81', '#8395a7'
+  ];
+
+  const mvMod = {
+    editingId: null,
+    editingRating: 0,
+    activeGroup: 'General',
+    trayTab: 'custom', // 'custom' | 'catalog'
+    customScope: 'sublist', // 'sublist' | 'group'
+    thumbSize: 'sm', // 'sm' | 'md' | 'lg'
+    thumbRatio: 'poster', // 'poster' | 'square'
+    trayFormat: 'all',
+    trayOrg: 'all',
+    trayQuery: '',
+    selectedCoverId: null,
+    draggedCoverId: null,
+    draggedRowId: null,
+    editingRowId: null
+  };
+
+  /* -------------------------------------------------------------------
+   * 1. ESTRUCTURA COMPATIBLE CON appState.settings (NUNCA SE PIERDE)
+   * ------------------------------------------------------------------- */
+  function ensureModData() {
+    if (typeof appState === 'undefined' || !appState) return false;
+    if (!appState.settings) appState.settings = {};
+    if (!Array.isArray(appState.settings.tierGroups)) {
+      appState.settings.tierGroups = ['General'];
+    }
+    if (!Array.isArray(appState.settings.tierCustomImages)) {
+      appState.settings.tierCustomImages = [];
+    }
+    if (!Array.isArray(appState.tierLists) || appState.tierLists.length === 0) {
+      appState.tierLists = [{
+        id: 'tier_' + Date.now(),
+        name: 'General',
+        group: 'General',
+        rows: makeDefaultRows()
+      }];
+    }
+    appState.tierLists.forEach(t => {
+      if (!t.group || !String(t.group).trim()) t.group = 'General';
+      if (!appState.settings.tierGroups.includes(t.group)) {
+        appState.settings.tierGroups.push(t.group);
+      }
+    });
+    if (!appState.settings.tierGroups.includes(mvMod.activeGroup)) {
+      const cur = appState.tierLists.find(t => {
+        try { return t.id === currentTierListId; } catch (e) { return false; }
+      });
+      mvMod.activeGroup = cur ? cur.group : appState.settings.tierGroups[0];
+    }
+    return true;
+  }
+
+  function makeDefaultRows() {
+    const ts = Date.now();
+    return [
+      { id: 'r_s_' + ts, label: 'S', color: '#ff5252', itemIds: [] },
+      { id: 'r_a_' + ts, label: 'A', color: '#ff9f43', itemIds: [] },
+      { id: 'r_b_' + ts, label: 'B', color: '#feca57', itemIds: [] },
+      { id: 'r_c_' + ts, label: 'C', color: '#40bcf4', itemIds: [] },
+      { id: 'r_d_' + ts, label: 'D', color: '#1dd1a1', itemIds: [] }
+    ];
+  }
+
+  function getScoreColor(val) {
+    if (!val || val <= 0) return '#9ab';
+    if (val >= 9.0) return '#feca57';
+    if (val >= 7.0) return '#00e054';
+    if (val >= 5.0) return '#ff9f43';
+    return '#ff5252';
+  }
+
+  function getAnyTierItem(id) {
+    ensureModData();
+    const fromCatalog = (appState.items || []).find(i => i.id === id);
+    if (fromCatalog) return { ...fromCatalog, isCustom: false };
+    const fromCustom = (appState.settings.tierCustomImages || []).find(c => c.id === id);
+    if (fromCustom) return { ...fromCustom, isCustom: true };
+    return null;
+  }
+
+  function formatRating10(val) {
+    const n = Number(val || 0);
+    if (n <= 0) return 'Sin nota';
+    return (Math.round(n * 10) / 10).toFixed(1);
+  }
+
+  /* -------------------------------------------------------------------
+   * 2. PUNTUACIÓN DE 1 A 10 CON DECIMALES EN FICHA Y ESTANTERÍA
+   * ------------------------------------------------------------------- */
+  function renderRating10Widget() {
+    const container = document.getElementById('detail-stars-widget');
+    const label = document.getElementById('detail-rating-number');
+    if (!container || !label) return;
+
+    const val = Math.max(0, Math.min(10, Math.round((Number(mvMod.editingRating) || 0) * 10) / 10));
+    mvMod.editingRating = val;
+    try { editingItemRating = val; } catch (e) {}
+
+    const col = getScoreColor(val);
+    label.style.color = col;
+    label.textContent = val > 0 ? `${val.toFixed(1)} / 10` : 'Sin calificar';
+
+    container.className = 'w-full space-y-2 mt-1';
+    container.innerHTML = `
+      <div class="flex items-center gap-2 w-full">
+        <input type="range" min="0" max="10" step="0.1" value="${val}"
+               oninput="window._mvSetRating10(this.value, true)"
+               class="flex-1 accent-[#00e054] cursor-pointer h-2 rounded-lg bg-[#2c3440]" />
+        <input id="mv-rating10-num" type="number" min="0" max="10" step="0.1" value="${val > 0 ? val.toFixed(1) : ''}" placeholder="0.0"
+               onchange="window._mvSetRating10(this.value, false)"
+               class="w-16 px-2 py-1 rounded-lg bg-[#1f252c] border border-[#333d4b] text-white text-xs font-extrabold text-center focus:outline-none focus:border-[#00e054]" />
+      </div>
+      <div class="flex flex-wrap items-center gap-1">
+        ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+          <button type="button" onclick="window._mvSetRating10(${n}, false)"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
+                    Math.floor(val) === n && val > 0
+                      ? 'bg-[#00e054] text-black border-[#00e054]'
+                      : 'bg-[#1f252c] text-[#9ab] hover:text-white border-[#333d4b]'
+                  }">${n}</button>
+        `).join('')}
+        <button type="button" onclick="window._mvStepRating10(-0.5)"
+                class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#2c3440] text-white hover:bg-[#333d4b]">-0.5</button>
+        <button type="button" onclick="window._mvStepRating10(0.5)"
+                class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#2c3440] text-white hover:bg-[#333d4b]">+0.5</button>
+        ${val > 0 && val <= 5 ? `
+          <button type="button" onclick="window._mvSetRating10(${(val * 2).toFixed(1)}, false)" title="Convertir nota antigua de escala 5 a escala 10"
+                  class="ml-auto px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#ff8000]/20 text-[#ff8000] border border-[#ff8000]/40 hover:bg-[#ff8000] hover:text-black">×2</button>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  window._mvSetRating10 = function (raw, fromRange) {
+    let n = parseFloat(String(raw).replace(',', '.'));
+    if (isNaN(n) || n < 0) n = 0;
+    if (n > 10) n = 10;
+    mvMod.editingRating = Math.round(n * 10) / 10;
+    try { editingItemRating = mvMod.editingRating; } catch (e) {}
+
+    if (fromRange) {
+      const label = document.getElementById('detail-rating-number');
+      const numInp = document.getElementById('mv-rating10-num');
+      if (label) {
+        label.style.color = getScoreColor(mvMod.editingRating);
+        label.textContent = mvMod.editingRating > 0 ? `${mvMod.editingRating.toFixed(1)} / 10` : 'Sin calificar';
+      }
+      if (numInp) numInp.value = mvMod.editingRating > 0 ? mvMod.editingRating.toFixed(1) : '';
+    } else {
+      renderRating10Widget();
+    }
+  };
+
+  window._mvStepRating10 = function (delta) {
+    const next = Math.max(0, Math.min(10, Math.round(((mvMod.editingRating || 0) + delta) * 10) / 10));
+    window._mvSetRating10(next, false);
+  };
+
+  // Envolver funciones de la ficha de detalles
+  const origOpenDetails = window.openDetailsModal;
+  if (typeof origOpenDetails === 'function') {
+    window.openDetailsModal = function (itemId) {
+      origOpenDetails.apply(this, arguments);
+      const item = (appState.items || []).find(i => i.id === itemId);
+      mvMod.editingId = itemId;
+      mvMod.editingRating = item ? Number(item.rating || 0) : 0;
+      renderRating10Widget();
+    };
+  }
+
+  window.setDetailRating = function (val) {
+    window._mvSetRating10(val, false);
+  };
+
+  window.renderDetailStarsWidget = renderRating10Widget;
+
+  const origSaveDetails = window.saveDetailsModal;
+  if (typeof origSaveDetails === 'function') {
+    window.saveDetailsModal = async function () {
+      const targetId = mvMod.editingId;
+      const targetRating = mvMod.editingRating;
+      try { editingItemRating = targetRating; } catch (e) {}
+      await origSaveDetails.apply(this, arguments);
+      if (targetId && appState && Array.isArray(appState.items)) {
+        const item = appState.items.find(i => i.id === targetId);
+        if (item && item.rating !== targetRating) {
+          item.rating = targetRating;
+          if (typeof saveStateToDB === 'function') await saveStateToDB();
+          if (typeof renderAllActiveViews === 'function') renderAllActiveViews();
+        }
+      }
+    };
+  }
+
+  // Mostrar nota /10 limpia en las portadas de la estantería
+  function enhanceGridRatings10() {
+    const grid = document.getElementById('clean-poster-grid');
+    if (!grid || typeof appState === 'undefined') return;
+    const clickableNodes = grid.querySelectorAll('[onclick*="openDetailsModal("]');
+    clickableNodes.forEach(node => {
+      const attr = node.getAttribute('onclick') || '';
+      const m = attr.match(/openDetailsModal\(['"]([^'"]+)['"]\)/);
+      if (!m) return;
+      const item = (appState.items || []).find(i => i.id === m[1]);
+      if (!item) return;
+
+      // Si existe barra de estrellas antigua en el footer de la tarjeta, actualizarla
+      const cardRoot = node.classList.contains('poster-card') ? (node.parentElement !== grid ? node.parentElement : node) : node;
+      const starRows = cardRoot.querySelectorAll('.fa-star, .fa-star-half-stroke');
+      starRows.forEach(ic => {
+        const box = ic.closest('div');
+        if (box && !box.dataset.mvScoreReplaced && box.parentElement !== cardRoot) {
+          box.dataset.mvScoreReplaced = '1';
+          if (item.rating > 0) {
+            box.innerHTML = `<span style="color:${getScoreColor(item.rating)};font-weight:800;font-size:11px;">★ ${formatRating10(item.rating)}<span style="opacity:.65;font-weight:600">/10</span></span>`;
+          } else {
+            box.innerHTML = '';
+          }
+        }
+      });
+
+      // Colocar insignia limpia en esquina inferior izquierda del póster si tiene nota
+      const poster = node.classList.contains('poster-card') ? node : node.querySelector('.poster-card');
+      if (poster) {
+        const prev = poster.querySelector('.mv-score10-badge');
+        if (prev) prev.remove();
+        if (item.rating > 0) {
+          const badge = document.createElement('span');
+          badge.className = 'mv-score10-badge absolute bottom-1.5 left-1.5 z-10 pointer-events-none';
+          badge.style.color = getScoreColor(item.rating);
+          badge.innerHTML = `★ ${formatRating10(item.rating)}`;
+          poster.appendChild(badge);
+        }
+      }
+    });
+  }
+
+  const origRenderFormatView = window.renderFormatView;
+  if (typeof origRenderFormatView === 'function') {
+    window.renderFormatView = function () {
+      const res = origRenderFormatView.apply(this, arguments);
+      enhanceGridRatings10();
+      return res;
+    };
+  }
+
+  /* -------------------------------------------------------------------
+   * 3. TIER LISTS CON GRUPOS (EJ: FIRE EMBLEM -> JUEGOS/LIBROS/PERSONAJES)
+   *    + SUBIDA MÚLTIPLE DE IMÁGENES + FILAS ARRASTRABLES LIMPIAS
+   * ------------------------------------------------------------------- */
+  function getListsInGroup(groupName) {
+    ensureModData();
+    return appState.tierLists.filter(t => (t.group || 'General') === groupName);
+  }
+
+  function getActiveSubTierList() {
+    ensureModData();
+    let groupLists = getListsInGroup(mvMod.activeGroup);
+    if (groupLists.length === 0) {
+      const created = {
+        id: 'tier_' + Date.now(),
+        name: 'Principal',
+        group: mvMod.activeGroup,
+        rows: makeDefaultRows()
+      };
+      appState.tierLists.push(created);
+      groupLists = [created];
+    }
+    let found = null;
+    try {
+      found = groupLists.find(t => t.id === currentTierListId);
+    } catch (e) {}
+    if (!found) {
+      found = groupLists[0];
+      try { currentTierListId = found.id; } catch (e) {}
+    }
+    return found;
+  }
+
+  function compressUploadedImage(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxSide = 320;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxSide || h > maxSide) {
+            if (w >= h) {
+              h = Math.round((h * maxSide) / w);
+              w = maxSide;
+            } else {
+              w = Math.round((w * maxSide) / h);
+              h = maxSide;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/webp', 0.8));
+        };
+        img.onerror = () => resolve(e.target.result);
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderGroupedTierListUI() {
+    if (!ensureModData()) return;
+    const section = document.getElementById('view-tierlists');
+    if (!section) return;
+
+    const groups = appState.settings.tierGroups;
+    const activeGroup = mvMod.activeGroup;
+    const subLists = getListsInGroup(activeGroup);
+    const tier = getActiveSubTierList();
+
+    const placedIds = new Set();
+    (tier.rows || []).forEach(r => (r.itemIds || []).forEach(id => placedIds.add(id)));
+
+    const sizeClass = mvMod.thumbSize === 'sm' ? 'mv-thumb-sm' : mvMod.thumbSize === 'lg' ? 'mv-thumb-lg' : 'mv-thumb-md';
+    const ratioClass = mvMod.thumbRatio === 'square' ? 'mv-ratio-square' : 'mv-ratio-poster';
+
+    // Filtrar bandeja según pestaña (Imágenes subidas vs Mi Catálogo)
+    let trayItems = [];
+    if (mvMod.trayTab === 'custom') {
+      trayItems = (appState.settings.tierCustomImages || []).filter(img => {
+        if (placedIds.has(img.id)) return false;
+        if (mvMod.customScope === 'sublist') return img.tierListId === tier.id;
+        return img.group === activeGroup;
+      });
+    } else {
+      trayItems = (appState.items || []).filter(i => !placedIds.has(i.id));
+      if (mvMod.trayFormat !== 'all') {
+        trayItems = trayItems.filter(i => i.format === mvMod.trayFormat);
+      }
+      if (mvMod.trayOrg !== 'all') {
+        const org = (appState.organizers || []).find(o => o.id === mvMod.trayOrg);
+        if (org) {
+          const allowed = new Set(org.itemIds || []);
+          trayItems = trayItems.filter(i => allowed.has(i.id));
+        }
+      }
+    }
+    if (mvMod.trayQuery.trim()) {
+      const q = mvMod.trayQuery.trim().toLowerCase();
+      trayItems = trayItems.filter(i => (i.title || '').toLowerCase().includes(q));
+    }
+
+    const customCountHere = (appState.settings.tierCustomImages || []).filter(img =>
+      mvMod.customScope === 'sublist' ? img.tierListId === tier.id : img.group === activeGroup
+    ).length;
+
+    const selectedItemObj = mvMod.selectedCoverId ? getAnyTierItem(mvMod.selectedCoverId) : null;
+
+    section.innerHTML = `
+      <!-- CABECERA DE GRUPO (EJ: FIRE EMBLEM) Y SUB-LISTAS (JUEGOS / LIBROS / PERSONAJES) -->
+      <div class="bg-[#1f252c] p-3.5 sm:p-4 rounded-2xl border border-[#333d4b] space-y-3.5 w-full">
+        <!-- Nivel 1: Categoría / Grupo Principal -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#333d4b]">
+          <div class="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-[#ff8000] flex items-center gap-1.5">
+              <i class="fa-solid fa-folder-open"></i>
+              <span>Categoría:</span>
+            </span>
+            <select onchange="window._mvSelectGroup(this.value)"
+                    class="bg-[#14181c] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl border border-[#333d4b] focus:outline-none focus:border-[#ff8000] min-w-[160px]">
+              ${groups.map(g => `<option value="${escapeHtml(g)}" ${g === activeGroup ? 'selected' : ''}>${escapeHtml(g)} (${getListsInGroup(g).length})</option>`).join('')}
+            </select>
+            <button onclick="window._mvCreateGroup()" class="px-3 py-2 rounded-xl bg-[#ff8000] hover:opacity-95 text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-folder-plus"></i>
+              <span>+ Categoría</span>
+            </button>
+            <button onclick="window._mvRenameGroup()" title="Renombrar esta categoría" class="px-2.5 py-2 rounded-xl bg-[#2c3440] hover:bg-[#333d4b] text-white text-xs">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            ${groups.length > 1 ? `
+              <button onclick="window._mvDeleteGroup()" title="Eliminar categoría" class="px-2.5 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-300 text-xs border border-red-500/30">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            ` : ''}
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="window._mvAddTierRow()" class="px-2.5 py-2 rounded-xl bg-[#2c3440] hover:bg-[#333d4b] text-white text-xs font-semibold flex items-center gap-1">
+              <i class="fa-solid fa-plus text-[#40bcf4]"></i><span>Fila</span>
+            </button>
+            <button onclick="window._mvClearSubList()" class="px-2.5 py-2 rounded-xl bg-[#2c3440] hover:bg-[#333d4b] text-[#9ab] hover:text-white text-xs font-semibold">
+              Vaciar
+            </button>
+            <button onclick="window._mvExportTierPNG()" class="px-3 py-2 rounded-xl bg-[#00e054] hover:opacity-95 text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
+              <i class="fa-solid fa-download"></i><span>PNG</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Nivel 2: Sub-listas dentro de la categoría activa (Pestañas) -->
+        <div class="space-y-2">
+          <div class="flex flex-wrap items-center gap-1.5">
+            ${subLists.map(sub => {
+              const active = sub.id === tier.id;
+              return `
+                <button onclick="window._mvSelectSubList('${sub.id}')"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                          active
+                            ? 'bg-[#00e054] text-black border-[#00e054] shadow'
+                            : 'bg-[#14181c] text-[#9ab] hover:text-white border-[#333d4b]'
+                        }">
+                  <span>${escapeHtml(sub.name)}</span>
+                </button>
+              `;
+            }).join('')}
+            <button onclick="window._mvCreateSubList()"
+                    class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#2c3440] hover:bg-[#333d4b] text-[#00e054] border border-dashed border-[#00e054]/50 flex items-center gap-1">
+              <i class="fa-solid fa-plus"></i><span>Nueva sub-lista</span>
+            </button>
+          </div>
+
+          <!-- Controles rápidos de la sub-lista activa + tamaño/proporción -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button onclick="window._mvRenameSubList()" class="px-2 py-1 rounded-lg bg-[#14181c] hover:bg-[#2c3440] text-[#9ab] hover:text-white border border-[#333d4b]">
+                <i class="fa-solid fa-pen mr-1"></i>Renombrar "${escapeHtml(tier.name)}"
+              </button>
+              ${groups.length > 1 ? `
+                <select onchange="if(this.value) window._mvMoveSubListToGroup(this.value)"
+                        class="bg-[#14181c] text-[#9ab] hover:text-white px-2 py-1 rounded-lg border border-[#333d4b] focus:outline-none">
+                  <option value="">Mover a otra categoría...</option>
+                  ${groups.filter(g => g !== activeGroup).map(g => `<option value="${escapeHtml(g)}">→ ${escapeHtml(g)}</option>`).join('')}
+                </select>
+              ` : ''}
+              <button onclick="window._mvDeleteSubList()" class="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-300 border border-red-500/25">
+                <i class="fa-solid fa-trash-can mr-1"></i>Borrar sub-lista
+              </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5">
+              <!-- Proporción 2:3 vs 1:1 -->
+              <div class="inline-flex bg-[#14181c] p-0.5 rounded-lg border border-[#333d4b]">
+                <button onclick="window._mvSetRatio('poster')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbRatio === 'poster' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">2:3</button>
+                <button onclick="window._mvSetRatio('square')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbRatio === 'square' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">1:1</button>
+              </div>
+              <!-- Densidad -->
+              <div class="inline-flex bg-[#14181c] p-0.5 rounded-lg border border-[#333d4b]">
+                <button onclick="window._mvSetSize('sm')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbSize === 'sm' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">Compacto</button>
+                <button onclick="window._mvSetSize('md')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbSize === 'md' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">Normal</button>
+                <button onclick="window._mvSetSize('lg')" class="px-2 py-0.5 rounded-md font-bold ${mvMod.thumbSize === 'lg' ? 'bg-[#2c3440] text-white' : 'text-[#9ab]'}">Grande</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BARRA RÁPIDA DE 1 TOQUE AL SELECCIONAR UNA IMAGEN -->
+      ${selectedItemObj ? `
+        <div class="sticky top-16 z-30 bg-[#14181c]/95 backdrop-blur border border-[#00e054] rounded-2xl p-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xl">
+          <div class="flex items-center gap-2 min-w-0">
+            <img src="${selectedItemObj.coverData}" class="w-8 h-10 object-cover rounded border border-white/20 flex-shrink-0" />
+            <span class="text-xs font-bold text-white truncate max-w-[160px]">${escapeHtml(selectedItemObj.title || 'Imagen')}</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            ${(tier.rows || []).map(r => `
+              <button onclick="window._mvQuickAssign('${r.id}')" style="background:${r.color}"
+                      class="px-2.5 py-1 rounded-lg text-black font-black text-xs shadow hover:opacity-90">
+                ${escapeHtml(r.label)}
+              </button>
+            `).join('')}
+            <button onclick="window._mvQuickUnrank()" class="px-2.5 py-1 rounded-lg bg-[#2c3440] text-white text-xs font-bold">↩ Bandeja</button>
+            ${selectedItemObj.isCustom ? `
+              <button onclick="window._mvDeleteCustomImage('${selectedItemObj.id}')" class="px-2 py-1 rounded-lg bg-red-500/20 text-red-300 text-xs font-bold border border-red-500/40" title="Eliminar imagen subida">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            ` : ''}
+            <button onclick="window._mvClearSelection()" class="px-2 py-1 rounded-lg text-[#9ab] hover:text-white text-xs">✕</button>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- TABLERO DE TIER LIST (LETRAS LIMPIAS Y BARRAS ARRASTRABLES) -->
+      <div id="tier-board" class="rounded-2xl overflow-hidden border border-[#333d4b] bg-[#101418] divide-y divide-[#333d4b] shadow-xl w-full">
+        ${(tier.rows || []).map(row => {
+          const rowItems = (row.itemIds || []).map(id => getAnyTierItem(id)).filter(Boolean);
+          return `
+            <div data-row-id="${row.id}"
+                 ondragover="window._mvRowDragOver(event, '${row.id}')"
+                 ondragleave="window._mvRowDragLeave(event)"
+                 ondrop="window._mvRowDrop(event, '${row.id}')"
+                 class="flex min-h-[78px] bg-[#161b20] transition-colors">
+              <!-- Bloque de letra 100% limpio y arrastrable -->
+              <div draggable="true"
+                   ondragstart="window._mvRowDragStart(event, '${row.id}')"
+                   ondragend="window._mvRowDragEnd(event)"
+                   onclick="window._mvTapRow('${row.id}')"
+                   title="Arrastra para mover esta fila arriba o abajo"
+                   style="background-color: ${row.color}"
+                   class="mv-tier-handle w-16 sm:w-24 flex-shrink-0 flex items-center justify-center p-2 text-black font-black text-center text-sm sm:text-lg leading-tight break-words">
+                <span>${escapeHtml(row.label)}</span>
+              </div>
+
+              <!-- Zona de portadas -->
+              <div onclick="window._mvTapRow('${row.id}')"
+                   ondragover="event.preventDefault()"
+                   ondrop="window._mvCoverDropToRow(event, '${row.id}')"
+                   class="flex-1 p-1.5 sm:p-2 flex flex-wrap items-center gap-1.5 min-h-[78px] cursor-pointer hover:bg-white/[0.02] min-w-0">
+                ${rowItems.map(item => renderThumbHTML(item, sizeClass, ratioClass)).join('')}
+              </div>
+
+              <!-- Botón único y discreto para editar esta fila -->
+              <div class="w-9 flex-shrink-0 flex items-center justify-center border-l border-[#2c3440]/70 bg-[#14181c]/70">
+                <button onclick="window._mvOpenRowConfig('${row.id}')" title="Configurar fila"
+                        class="w-7 h-7 rounded-lg text-[#9ab] hover:text-white hover:bg-[#2c3440] flex items-center justify-center text-xs transition-colors">
+                  <i class="fa-solid fa-gear"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- BANDEJA INFERIOR: IMÁGENES SUBIDAS PROPIAS + TU CATÁLOGO -->
+      <div class="bg-[#1f252c] rounded-2xl p-3.5 sm:p-4 border border-[#333d4b] space-y-3 w-full">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <!-- Pestañas de la bandeja -->
+          <div class="inline-flex bg-[#14181c] p-1 rounded-xl border border-[#333d4b]">
+            <button onclick="window._mvSetTrayTab('custom')"
+                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                      mvMod.trayTab === 'custom' ? 'bg-[#2c3440] text-white' : 'text-[#9ab] hover:text-white'
+                    }">
+              <i class="fa-solid fa-images text-[#ff8000]"></i>
+              <span>Imágenes subidas (${customCountHere})</span>
+            </button>
+            <button onclick="window._mvSetTrayTab('catalog')"
+                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                      mvMod.trayTab === 'catalog' ? 'bg-[#2c3440] text-white' : 'text-[#9ab] hover:text-white'
+                    }">
+              <i class="fa-solid fa-layer-group text-[#00e054]"></i>
+              <span>Mi Catálogo</span>
+            </button>
+          </div>
+
+          <!-- Botón para subir una o muchas imágenes de golpe -->
+          <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-[#40bcf4] hover:opacity-95 text-black font-extrabold text-xs flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Subir imágenes a "${escapeHtml(tier.name)}"</span>
+            <input type="file" accept="image/*" multiple onchange="window._mvHandleMultiUpload(event)" class="hidden" />
+          </label>
+        </div>
+
+        <!-- Filtros de la bandeja -->
+        <div class="flex flex-wrap items-center gap-2">
+          <input type="text" value="${escapeHtml(mvMod.trayQuery)}"
+                 oninput="window._mvSetTrayQuery(this.value)"
+                 placeholder="🔍 Buscar imagen u obra en la bandeja..."
+                 class="flex-1 min-w-[160px] h-9 px-3 rounded-xl bg-[#14181c] border border-[#333d4b] text-white text-xs focus:outline-none focus:border-[#00e054]" />
+
+          ${mvMod.trayTab === 'custom' ? `
+            <select onchange="window._mvSetCustomScope(this.value)"
+                    class="h-9 bg-[#14181c] text-white text-xs px-2.5 rounded-xl border border-[#333d4b] focus:outline-none">
+              <option value="sublist" ${mvMod.customScope === 'sublist' ? 'selected' : ''}>Solo de "${escapeHtml(tier.name)}"</option>
+              <option value="group" ${mvMod.customScope === 'group' ? 'selected' : ''}>Todas las de "${escapeHtml(activeGroup)}"</option>
+            </select>
+          ` : `
+            <select onchange="window._mvSetTrayFormat(this.value)"
+                    class="h-9 bg-[#14181c] text-white text-xs px-2.5 rounded-xl border border-[#333d4b] focus:outline-none">
+              <option value="all" ${mvMod.trayFormat === 'all' ? 'selected' : ''}>Todos los formatos</option>
+              ${(typeof FORMATS !== 'undefined' ? FORMATS : []).map(f => `<option value="${f.id}" ${mvMod.trayFormat === f.id ? 'selected' : ''}>${escapeHtml(f.name)}</option>`).join('')}
+            </select>
+            <select onchange="window._mvSetTrayOrg(this.value)"
+                    class="h-9 bg-[#14181c] text-white text-xs px-2.5 rounded-xl border border-[#333d4b] focus:outline-none max-w-[180px]">
+              <option value="all" ${mvMod.trayOrg === 'all' ? 'selected' : ''}>Cualquier franquicia</option>
+              ${(appState.organizers || []).map(o => `<option value="${o.id}" ${mvMod.trayOrg === o.id ? 'selected' : ''}>${escapeHtml(o.name)}</option>`).join('')}
+            </select>
+          `}
+        </div>
+
+        <!-- Contenedor de imágenes sin clasificar -->
+        <div id="tier-unranked-tray"
+             ondragover="event.preventDefault()"
+             ondrop="window._mvCoverDropToTray(event)"
+             class="min-h-[104px] p-2.5 rounded-xl bg-[#14181c] border border-[#333d4b] flex flex-wrap gap-1.5 items-center w-full">
+          ${trayItems.length === 0
+            ? `<span class="text-xs text-[#9ab] py-5 mx-auto text-center">
+                ${mvMod.trayTab === 'custom'
+                  ? 'Aún no has subido imágenes aquí. Toca "Subir imágenes" arriba para añadir personajes, portadas o capturas.'
+                  : 'No hay más obras de tu catálogo sin clasificar con este filtro.'}
+               </span>`
+            : trayItems.map(item => renderThumbHTML(item, sizeClass, ratioClass)).join('')}
+        </div>
+      </div>
+
+      <!-- MODAL COMPACTO DE CONFIGURACIÓN DE FILA -->
+      <div id="mv-row-config-modal" class="${mvMod.editingRowId ? '' : 'hidden'} fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+           onclick="if(event.target===this) window._mvCloseRowConfig()">
+        ${renderRowConfigModalInner(tier)}
+      </div>
+    `;
+  }
+
+  function renderThumbHTML(item, sizeClass, ratioClass) {
+    const isSel = mvMod.selectedCoverId === item.id;
+    return `
+      <div draggable="true"
+           ondragstart="window._mvCoverDragStart(event, '${item.id}')"
+           onclick="window._mvTapCover(event, '${item.id}')"
+           title="${escapeHtml(item.title || '')}"
+           class="${sizeClass} ${ratioClass} rounded-md overflow-hidden border border-white/20 shadow cursor-pointer flex-shrink-0 transition-transform bg-[#1f252c] ${
+             isSel ? 'tier-selected-cover' : 'hover:scale-105'
+           }">
+        <img src="${item.coverData}" alt="${escapeHtml(item.title || '')}" class="w-full h-full object-cover pointer-events-none" />
+      </div>
+    `;
+  }
+
+  function renderRowConfigModalInner(tier) {
+    if (!mvMod.editingRowId) return '';
+    const row = (tier.rows || []).find(r => r.id === mvMod.editingRowId);
+    if (!row) return '';
+    return `
+      <div class="bg-[#1f252c] border border-[#333d4b] rounded-2xl max-w-sm w-full p-4 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[#333d4b] pb-2.5">
+          <h3 class="text-sm font-extrabold text-white">Configurar Fila</h3>
+          <button onclick="window._mvCloseRowConfig()" class="text-[#9ab] hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-bold text-[#9ab] mb-1">Texto de la fila</label>
+            <input id="mv-row-label-inp" type="text" value="${escapeHtml(row.label)}"
+                   class="w-full px-3 py-2 rounded-xl bg-[#14181c] border border-[#333d4b] text-white font-bold text-sm focus:outline-none focus:border-[#00e054]" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-[#9ab] mb-1.5">Color</label>
+            <div class="flex flex-wrap items-center gap-2">
+              ${MV_PRESET_COLORS.map(c => `
+                <button type="button" onclick="window._mvSetRowColor('${row.id}', '${c}')"
+                        style="background:${c}"
+                        class="w-6 h-6 rounded-full border-2 ${row.color.toLowerCase() === c ? 'border-white scale-110' : 'border-transparent'}"></button>
+              `).join('')}
+              <input type="color" value="${row.color}" onchange="window._mvSetRowColor('${row.id}', this.value)"
+                     class="w-7 h-7 rounded bg-transparent border-0 cursor-pointer" title="Color personalizado" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="window._mvClearSingleRow('${row.id}')" class="py-2 px-3 rounded-xl bg-[#2c3440] hover:bg-[#333d4b] text-white text-xs font-semibold">
+              Vaciar fila
+            </button>
+            <button onclick="window._mvDeleteSingleRow('${row.id}')" class="py-2 px-3 rounded-xl bg-red-500/15 hover:bg-red-500/30 text-red-300 text-xs font-semibold border border-red-500/30">
+              Eliminar fila
+            </button>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-[#333d4b]">
+          <button onclick="window._mvCloseRowConfig()" class="px-3.5 py-1.5 rounded-xl bg-[#2c3440] text-white text-xs font-semibold">Cerrar</button>
+          <button onclick="window._mvSaveRowLabel('${row.id}')" class="px-4 py-1.5 rounded-xl bg-[#00e054] text-black font-bold text-xs">Guardar</button>
+        </div>
+      </div>
+    `;
+  }
+
+  /* -------------------------------------------------------------------
+   * 4. ACCIONES DE GRUPOS, SUB-LISTAS, SUBIDA Y ARRASTRE
+   * ------------------------------------------------------------------- */
+  window._mvSelectGroup = function (groupName) {
+    mvMod.activeGroup = groupName;
+    mvMod.selectedCoverId = null;
+    const lists = getListsInGroup(groupName);
+    if (lists[0]) { try { currentTierListId = lists[0].id; } catch (e) {} }
+    renderGroupedTierListUI();
+  };
+
+  window._mvCreateGroup = async function () {
+    const name = prompt('Nombre de la nueva categoría (ej: Fire Emblem, Zelda, Anime):');
+    if (!name || !name.trim()) return;
+    const clean = name.trim();
+    ensureModData();
+    if (!appState.settings.tierGroups.includes(clean)) {
+      appState.settings.tierGroups.push(clean);
+    }
+    const firstSub = prompt(`¿Cómo llamar a la primera sub-lista dentro de "${clean}"?`, 'Juegos') || 'Principal';
+    const newTier = {
+      id: 'tier_' + Date.now(),
+      name: firstSub.trim() || 'Principal',
+      group: clean,
+      rows: makeDefaultRows()
+    };
+    appState.tierLists.push(newTier);
+    mvMod.activeGroup = clean;
+    try { currentTierListId = newTier.id; } catch (e) {}
+    await saveStateToDB();
+    renderGroupedTierListUI();
+    showToast(`Categoría "${clean}" creada`, 'success');
+  };
+
+  window._mvRenameGroup = async function () {
+    const oldName = mvMod.activeGroup;
+    const next = prompt('Nuevo nombre para esta categoría:', oldName);
+    if (!next || !next.trim() || next.trim() === oldName) return;
+    const clean = next.trim();
+    ensureModData();
+    appState.settings.tierGroups = appState.settings.tierGroups.map(g => g === oldName ? clean : g);
+    appState.settings.tierGroups = [...new Set(appState.settings.tierGroups)];
+    appState.tierLists.forEach(t => { if (t.group === oldName) t.group = clean; });
+    appState.settings.tierCustomImages.forEach(img => { if (img.group === oldName) img.group = clean; });
+    mvMod.activeGroup = clean;
+    await saveStateToDB();
+    renderGroupedTierListUI();
+    showToast(`Categoría renombrada a "${clean}"`, 'success');
+  };
+
+  window._mvDeleteGroup = async function () {
+    ensureModData();
+    if (appState.settings.tierGroups.length <= 1) return;
+    const g = mvMod.activeGroup;
+    if (!confirm(`¿Eliminar la categoría "${g}" y todas sus sub-listas?`)) return;
+    appState.tierLists = appState.tierLists.filter(t => t.group !== g);
+    appState.settings.tierCustomImages = appState.settings.tierCustomImages.filter(i => i.group !== g);
+    appState.settings.tierGroups = appState.settings.tierGroups.filter(x => x !== g);
+    mvMod.activeGroup = appState.settings.tierGroups[0];
+    const first = getListsInGroup(mvMod.activeGroup)[0];
+    if (first) { try { currentTierListId = first.id; } catch (e) {} }
+    await saveStateToDB();
+    renderGroupedTierListUI();
+    showToast(`Categoría "${g}" eliminada`, 'info');
+  };
+
+  window._mvSelectSubList = function (id) {
+    try { currentTierListId = id; } catch (e) {}
+    mvMod.selectedCoverId = null;
+    renderGroupedTierListUI();
+  };
+
+  window._mvCreateSubList = async function () {
+    const name = prompt(`Nueva sub-lista dentro de "${mvMod.activeGroup}" (ej: Personajes, Libros, Jefes):`);
+    if (!name || !name.trim()) return;
+    const newTier = {
+      id: 'tier_' + Date.now(),
+      name: name.trim(),
+      group: mvMod.activeGroup,
+      rows: makeDefaultRows()
+    };
+    appState.tierLists.push(newTier);
+    try { currentTierListId = newTier.id; } catch (e) {}
+    await saveStateToDB();
+    renderGroupedTierListUI();
+    showToast(`Sub-lista "${newTier.name}" creada en ${mvMod.activeGroup}`, 'success');
+  };
+
+  window._mvRenameSubList = async function () {
+    const tier = getActiveSubTierList();
+    const next = prompt('Nuevo nombre para esta sub-lista:', tier.name);
+    if (!next || !next.trim()) return;
+    tier.name = next.trim();
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+
+  window._mvMoveSubListToGroup = async function (targetGroup) {
+    const tier = getActiveSubTierList();
+    tier.group = targetGroup;
+    (appState.settings.tierCustomImages || []).forEach(img => {
+      if (img.tierListId === tier.id) img.group = targetGroup;
+    });
+    mvMod.activeGroup = targetGroup;
+    await saveStateToDB();
+    renderGroupedTierListUI();
+    showToast(`"${tier.name}" movida a ${targetGroup}`, 'success');
+  };
+
+  window._mvDeleteSubList = async function () {
+    const tier = getActiveSubTierList();
+    const groupLists = getListsInGroup(mvMod.activeGroup);
+    if (groupLists.length <= 1) {
+      if (!confirm('Es la única sub-lista de esta categoría. ¿Quieres vaciarla?')) return;
+      tier.rows.forEach(r => r.itemIds = []);
+    } else {
+      if (!confirm(`¿Eliminar la sub-lista "${tier.name}"?`)) return;
+      appState.tierLists = appState.tierLists.filter(t => t.id !== tier.id);
+      appState.settings.tierCustomImages = appState.settings.tierCustomImages.filter(i => i.tierListId !== tier.id);
+    }
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+
+  window._mvHandleMultiUpload = async function (event) {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    ensureModData();
+    const tier = getActiveSubTierList();
+    showToast(`Procesando ${files.length} imagen(es)...`, 'info');
+
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const base64 = await compressUploadedImage(f);
+      appState.settings.tierCustomImages.push({
+        id: 'timg_' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2, 5),
+        title: f.name.replace(/\.[^/.]+$/, ''),
+        coverData: base64,
+        group: mvMod.activeGroup,
+        tierListId: tier.id,
+        createdAt: Date.now()
+      });
+    }
+    mvMod.trayTab = 'custom';
+    await saveStateToDB();
+    renderGroupedTierListUI();
+    showToast(`${files.length} imagen(es) guardadas offline`, 'success');
+  };
+
+  window._mvDeleteCustomImage = async function (imgId) {
+    if (!confirm('¿Eliminar esta imagen subida?')) return;
+    appState.settings.tierCustomImages = (appState.settings.tierCustomImages || []).filter(i => i.id !== imgId);
+    appState.tierLists.forEach(t => t.rows.forEach(r => {
+      r.itemIds = (r.itemIds || []).filter(id => id !== imgId);
+    }));
+    if (mvMod.selectedCoverId === imgId) mvMod.selectedCoverId = null;
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+
+  // Drag & Drop de FILAS completas
+  window._mvRowDragStart = function (e, rowId) {
+    mvMod.draggedRowId = rowId;
+    mvMod.draggedCoverId = null;
+    e.dataTransfer.setData('text/mv-row', rowId);
+    e.currentTarget.closest('[data-row-id]')?.classList.add('mv-tier-row-dragging');
+  };
+  window._mvRowDragEnd = function () {
+    mvMod.draggedRowId = null;
+    document.querySelectorAll('.mv-tier-row-dragging, .mv-tier-row-over').forEach(el => {
+      el.classList.remove('mv-tier-row-dragging', 'mv-tier-row-over');
+    });
+  };
+  window._mvRowDragOver = function (e, rowId) {
+    if (!mvMod.draggedRowId || mvMod.draggedRowId === rowId) return;
+    e.preventDefault();
+    e.currentTarget.classList.add('mv-tier-row-over');
+  };
+  window._mvRowDragLeave = function (e) {
+    e.currentTarget.classList.remove('mv-tier-row-over');
+  };
+  window._mvRowDrop = async function (e, targetRowId) {
+    if (!mvMod.draggedRowId || mvMod.draggedRowId === targetRowId) return;
+    e.preventDefault();
+    const tier = getActiveSubTierList();
+    const fromIdx = tier.rows.findIndex(r => r.id === mvMod.draggedRowId);
+    const toIdx = tier.rows.findIndex(r => r.id === targetRowId);
+    if (fromIdx > -1 && toIdx > -1) {
+      const [moved] = tier.rows.splice(fromIdx, 1);
+      tier.rows.splice(toIdx, 0, moved);
+      await saveStateToDB();
+    }
+    mvMod.draggedRowId = null;
+    renderGroupedTierListUI();
+  };
+
+  // Drag & Drop y Toque de PORTADAS / IMÁGENES
+  window._mvCoverDragStart = function (e, itemId) {
+    e.stopPropagation();
+    mvMod.draggedCoverId = itemId;
+    mvMod.draggedRowId = null;
+    e.dataTransfer.setData('text/plain', itemId);
+  };
+  window._mvTapCover = function (e, itemId) {
+    e.stopPropagation();
+    mvMod.selectedCoverId = mvMod.selectedCoverId === itemId ? null : itemId;
+    renderGroupedTierListUI();
+  };
+  window._mvTapRow = async function (rowId) {
+    if (!mvMod.selectedCoverId) return;
+    await moveTierItem(mvMod.selectedCoverId, rowId);
+    mvMod.selectedCoverId = null;
+    renderGroupedTierListUI();
+  };
+  window._mvCoverDropToRow = async function (e, rowId) {
+    if (mvMod.draggedRowId) return;
+    e.preventDefault();
+    const id = mvMod.draggedCoverId || e.dataTransfer.getData('text/plain');
+    if (!id) return;
+    await moveTierItem(id, rowId);
+    mvMod.draggedCoverId = null;
+    mvMod.selectedCoverId = null;
+    renderGroupedTierListUI();
+  };
+  window._mvCoverDropToTray = async function (e) {
+    e.preventDefault();
+    const id = mvMod.draggedCoverId || mvMod.selectedCoverId || e.dataTransfer.getData('text/plain');
+    if (!id) return;
+    await moveTierItem(id, null);
+    mvMod.draggedCoverId = null;
+    mvMod.selectedCoverId = null;
+    renderGroupedTierListUI();
+  };
+  window._mvQuickAssign = async function (rowId) {
+    if (!mvMod.selectedCoverId) return;
+    await moveTierItem(mvMod.selectedCoverId, rowId);
+    mvMod.selectedCoverId = null;
+    renderGroupedTierListUI();
+  };
+  window._mvQuickUnrank = async function () {
+    if (!mvMod.selectedCoverId) return;
+    await moveTierItem(mvMod.selectedCoverId, null);
+    mvMod.selectedCoverId = null;
+    renderGroupedTierListUI();
+  };
+  window._mvClearSelection = function () {
+    mvMod.selectedCoverId = null;
+    renderGroupedTierListUI();
+  };
+
+  async function moveTierItem(itemId, targetRowId) {
+    const tier = getActiveSubTierList();
+    tier.rows.forEach(r => { r.itemIds = (r.itemIds || []).filter(id => id !== itemId); });
+    if (targetRowId) {
+      const target = tier.rows.find(r => r.id === targetRowId);
+      if (target) target.itemIds.push(itemId);
+    }
+    await saveStateToDB();
+  }
+
+  // Configuración de filas y controles de bandeja
+  window._mvAddTierRow = async function () {
+    const tier = getActiveSubTierList();
+    tier.rows.push({
+      id: 'row_' + Date.now(),
+      label: String.fromCharCode(65 + (tier.rows.length % 26)),
+      color: MV_PRESET_COLORS[tier.rows.length % MV_PRESET_COLORS.length],
+      itemIds: []
+    });
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+  window._mvClearSubList = async function () {
+    const tier = getActiveSubTierList();
+    tier.rows.forEach(r => r.itemIds = []);
+    mvMod.selectedCoverId = null;
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+  window._mvOpenRowConfig = function (rowId) { mvMod.editingRowId = rowId; renderGroupedTierListUI(); };
+  window._mvCloseRowConfig = function () { mvMod.editingRowId = null; renderGroupedTierListUI(); };
+  window._mvSaveRowLabel = async function (rowId) {
+    const tier = getActiveSubTierList();
+    const row = tier.rows.find(r => r.id === rowId);
+    const inp = document.getElementById('mv-row-label-inp');
+    if (row && inp && inp.value.trim()) row.label = inp.value.trim();
+    mvMod.editingRowId = null;
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+  window._mvSetRowColor = async function (rowId, color) {
+    const tier = getActiveSubTierList();
+    const row = tier.rows.find(r => r.id === rowId);
+    if (row) row.color = color;
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+  window._mvClearSingleRow = async function (rowId) {
+    const tier = getActiveSubTierList();
+    const row = tier.rows.find(r => r.id === rowId);
+    if (row) row.itemIds = [];
+    mvMod.editingRowId = null;
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+  window._mvDeleteSingleRow = async function (rowId) {
+    const tier = getActiveSubTierList();
+    if (tier.rows.length <= 1) return;
+    tier.rows = tier.rows.filter(r => r.id !== rowId);
+    mvMod.editingRowId = null;
+    await saveStateToDB();
+    renderGroupedTierListUI();
+  };
+
+  window._mvSetTrayTab = function (t) { mvMod.trayTab = t; renderGroupedTierListUI(); };
+  window._mvSetCustomScope = function (s) { mvMod.customScope = s; renderGroupedTierListUI(); };
+  window._mvSetTrayFormat = function (f) { mvMod.trayFormat = f; renderGroupedTierListUI(); };
+  window._mvSetTrayOrg = function (o) { mvMod.trayOrg = o; renderGroupedTierListUI(); };
+  window._mvSetTrayQuery = function (q) { mvMod.trayQuery = q; renderGroupedTierListUI(); };
+  window._mvSetSize = function (s) { mvMod.thumbSize = s; renderGroupedTierListUI(); };
+  window._mvSetRatio = function (r) { mvMod.thumbRatio = r; renderGroupedTierListUI(); };
+
+  // Exportación PNG multilínea (soporta catálogo + imágenes subidas)
+  window._mvExportTierPNG = async function () {
+    const tier = getActiveSubTierList();
+    showToast('Generando imagen PNG...', 'info');
+
+    const isSquare = mvMod.thumbRatio === 'square';
+    const cardW = isSquare ? 88 : 76;
+    const cardH = isSquare ? 88 : 114;
+    const gap = 8;
+    const pad = 10;
+    const labelW = 120;
+    const perLine = isSquare ? 12 : 14;
+    const canvasW = labelW + pad * 2 + perLine * (cardW + gap);
+    const headerH = 60;
+
+    const rowHeights = tier.rows.map(r => {
+      const count = (r.itemIds || []).filter(id => getAnyTierItem(id)).length;
+      const lines = Math.max(1, Math.ceil(count / perLine));
+      return lines * (cardH + gap) + pad * 2;
+    });
+    const totalH = headerH + rowHeights.reduce((a, b) => a + b, 0);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = canvasW;
+    canvas.height = totalH;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#14181c';
+    ctx.fillRect(0, 0, canvasW, totalH);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 24px Inter, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${mvMod.activeGroup} — ${tier.name}`, 20, headerH / 2);
+
+    let y = headerH;
+    for (let i = 0; i < tier.rows.length; i++) {
+      const row = tier.rows[i];
+      const rh = rowHeights[i];
+
+      ctx.fillStyle = '#1f252c';
+      ctx.fillRect(labelW, y, canvasW - labelW, rh - 2);
+      ctx.fillStyle = row.color;
+      ctx.fillRect(0, y, labelW, rh - 2);
+
+      ctx.fillStyle = '#000000';
+      ctx.font = '900 24px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(row.label, labelW / 2, y + rh / 2);
+
+      const items = (row.itemIds || []).map(id => getAnyTierItem(id)).filter(Boolean);
+      for (let j = 0; j < items.length; j++) {
+        const col = j % perLine;
+        const line = Math.floor(j / perLine);
+        const x = labelW + pad + col * (cardW + gap);
+        const iy = y + pad + line * (cardH + gap);
+        await new Promise(resolve => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const scale = Math.max(cardW / img.width, cardH / img.height);
+            const sw = cardW / scale;
+            const sh = cardH / scale;
+            const sx = (img.width - sw) / 2;
+            const sy = (img.height - sh) / 2;
+            ctx.drawImage(img, sx, sy, sw, sh, x, iy, cardW, cardH);
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = items[j].coverData;
+        });
+      }
+      y += rh;
+    }
+
+    const link = document.createElement('a');
+    link.download = `${mvMod.activeGroup}_${tier.name}`.toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('Tier List descargada en PNG', 'success');
+  };
+
+  // Reemplazar renderTierListView para usar el nuevo sistema agrupado
+  window.renderTierListView = renderGroupedTierListUI;
+  window.populateTierOrganizerFilter = function () {};
+  window.exportTierListAsImage = window._mvExportTierPNG;
+
+  // Asegurar inicialización limpia al cargar la app
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      ensureModData();
+      enhanceGridRatings10();
+      const tierSection = document.getElementById('view-tierlists');
+      if (tierSection && !tierSection.classList.contains('hidden')) {
+        renderGroupedTierListUI();
+      }
+    }, 250);
+  });
+})();
+</script>
